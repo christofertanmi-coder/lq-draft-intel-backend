@@ -327,7 +327,7 @@ input.field[type=number]{ text-align:center; }
 }
 .phase-block{ margin-bottom:14px; }
 .phase-block-title{ font-size:10px; color:var(--mute); text-transform:uppercase; letter-spacing:.08em; margin-bottom:6px; margin-top:10px; }
-.side-cards-row{ display:flex; gap:8px; overflow-x:auto; padding-bottom:4px; flex-wrap:wrap; }
+.side-cards-row{ display:flex; gap:6px; padding-bottom:4px; }
 
 .team-block{
   border:1px solid var(--border); border-radius:14px; padding:14px; margin-bottom:12px; background:var(--panel);
@@ -347,7 +347,7 @@ input.field[type=number]{ text-align:center; }
   box-shadow:0 0 0 1px rgba(227,181,100,.25), 0 8px 24px rgba(227,181,100,.12);
 }
 .slot-card{
-  flex:none; width:60px; border-radius:8px; border:1px dashed var(--border); background:var(--panel-2);
+  flex:1 1 0; min-width:0; max-width:110px; border-radius:8px; border:1px dashed var(--border); background:var(--panel-2);
   display:flex; flex-direction:column; align-items:stretch; overflow:hidden; cursor:default;
 }
 .slot-card.filled{ border-style:solid; cursor:pointer; }
@@ -356,10 +356,15 @@ input.field[type=number]{ text-align:center; }
   animation:pulseGold 1.6s ease-in-out infinite;
 }
 @keyframes pulseGold{ 0%,100%{box-shadow:0 0 8px rgba(227,181,100,.25);} 50%{box-shadow:0 0 16px rgba(227,181,100,.6);} }
-.slot-card .sc-img{ width:100%; height:60px; object-fit:cover; background:var(--void); display:block; }
-.slot-card .sc-fallback{ width:100%; height:60px; display:flex; align-items:center; justify-content:center; background:var(--void); font-weight:800; color:var(--gold); font-size:14px; }
+/* Kotak 1:1 pakai trik padding-box, lebar mengikuti .slot-card (yang fleksibel per lebar layar) */
+.sc-thumb{ position:relative; width:100%; padding-top:100%; background:var(--void); overflow:hidden; }
+.sc-thumb .sc-img, .sc-thumb .sc-fallback{
+  position:absolute; inset:0; width:100%; height:100%; object-fit:cover; display:flex; align-items:center; justify-content:center;
+  font-weight:800; color:var(--gold); font-size:14px;
+}
 .slot-card .sc-name{ font-size:7.5px; text-align:center; padding:2px 2px; white-space:nowrap; overflow:hidden; text-overflow:ellipsis; }
-.slot-card .sc-empty{ display:flex; flex-direction:column; align-items:center; justify-content:center; height:60px; color:var(--mute); font-size:8px; text-align:center; padding:2px; gap:2px; }
+.slot-card .sc-empty{ display:flex; flex-direction:column; align-items:center; justify-content:center; position:relative; width:100%; padding-top:100%; color:var(--mute); font-size:8px; text-align:center; }
+.slot-card .sc-empty > *{ position:absolute; top:50%; left:50%; transform:translate(-50%,-50%); }
 .slot-card .sc-role{
   width:100%; background:var(--panel-2); border:none; border-top:1px solid var(--border); color:var(--ink);
   font-size:7.5px; padding:2px 1px; font-family:'Inter',sans-serif;
@@ -1214,7 +1219,7 @@ function simRenderCard(seqItem){
   const clickAttr = (hero || isActive) ? `onclick="simCardClick(${step})"` : '';
   let inner;
   if(hero){
-    inner = `${simHeroImgTag(hero)}<div class="sc-name">${hero}</div>`;
+    inner = `<div class="sc-thumb">${simHeroImgTag(hero)}</div><div class="sc-name">${hero}</div>`;
   } else if(isActive){
     inner = `<div class="sc-empty">${isBan?'🚫':'⚔'}<span>KLIK</span></div>`;
   } else {
