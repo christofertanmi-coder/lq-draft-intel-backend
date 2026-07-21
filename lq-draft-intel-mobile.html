@@ -116,6 +116,12 @@ main{ padding:0 14px; max-width:640px; margin:0 auto; }
   font-family:'JetBrains Mono',monospace; font-size:11px; letter-spacing:.14em; text-transform:uppercase;
   color:var(--gold); margin-bottom:10px; padding-bottom:8px; border-bottom:1px solid var(--border);
 }
+.sub-title{
+  font-family:'Rajdhani',sans-serif; font-weight:700; font-size:13px; color:var(--gold);
+  margin-top:22px; padding-top:16px; border-top:1px solid var(--border);
+}
+.sub-title-2{ font-size:11px; font-weight:600; margin:12px 0 6px; }
+.sub-desc{ font-size:11px; color:var(--mute); line-height:1.6; margin:4px 0 10px; }
 .empty-state{
   margin-top:60px; text-align:center; color:var(--mute); font-size:13px; padding:0 20px; line-height:1.7;
 }
@@ -256,7 +262,7 @@ main{ padding:0 14px; max-width:640px; margin:0 auto; }
   overflow:hidden;
 }
 .hero-grid-item img, .hero-grid-item .hg-fallback{
-  width:100%; aspect-ratio:1; object-fit:cover; display:block; background:var(--void);
+  width:100%; height:20vw; max-height:96px; min-height:56px; object-fit:cover; display:block; background:var(--void);
 }
 .hero-grid-item .hg-fallback{ display:flex; align-items:center; justify-content:center; font-size:15px; font-weight:800; color:var(--gold); }
 .hero-grid-item .hg-name{ font-size:9px; padding:4px 2px; white-space:nowrap; overflow:hidden; text-overflow:ellipsis; }
@@ -315,10 +321,14 @@ input.field[type=number]{ text-align:center; }
   animation:pulseGold 1.6s ease-in-out infinite;
 }
 @keyframes pulseGold{ 0%,100%{box-shadow:0 0 8px rgba(227,181,100,.25);} 50%{box-shadow:0 0 16px rgba(227,181,100,.6);} }
-.slot-card .sc-img{ width:100%; aspect-ratio:1; object-fit:cover; background:var(--void); }
-.slot-card .sc-fallback{ width:100%; aspect-ratio:1; display:flex; align-items:center; justify-content:center; background:var(--void); font-weight:800; color:var(--gold); font-size:14px; }
+.slot-card .sc-img{ width:100%; height:60px; object-fit:cover; background:var(--void); display:block; }
+.slot-card .sc-fallback{ width:100%; height:60px; display:flex; align-items:center; justify-content:center; background:var(--void); font-weight:800; color:var(--gold); font-size:14px; }
 .slot-card .sc-name{ font-size:7.5px; text-align:center; padding:2px 2px; white-space:nowrap; overflow:hidden; text-overflow:ellipsis; }
-.slot-card .sc-empty{ display:flex; flex-direction:column; align-items:center; justify-content:center; aspect-ratio:1; color:var(--mute); font-size:8px; text-align:center; padding:2px; gap:2px; }
+.slot-card .sc-empty{ display:flex; flex-direction:column; align-items:center; justify-content:center; height:60px; color:var(--mute); font-size:8px; text-align:center; padding:2px; gap:2px; }
+.slot-card .sc-role{
+  width:100%; background:var(--panel-2); border:none; border-top:1px solid var(--border); color:var(--ink);
+  font-size:7.5px; padding:2px 1px; font-family:'Inter',sans-serif;
+}
 .slot-card.ban .sc-img, .slot-card.ban .sc-fallback{ filter:grayscale(.5) brightness(.6); position:relative; }
 .slot-card.ban.filled::after{ content:'✕'; position:absolute; }
 
@@ -405,6 +415,14 @@ input.field[type=number]{ text-align:center; }
           <thead><tr><th>Hero</th><th>Pick</th><th>W-L</th><th>WR</th></tr></thead>
           <tbody id="pickTableBody"></tbody>
         </table>
+
+        <div class="sub-title">Priority Pick — Urutan Pick dari Draft Simulator</div>
+        <div class="sub-desc">Rata-rata posisi pick tiap hero (makin kecil = makin diprioritaskan dipick lebih awal). Dari data draft order simulator.</div>
+        <table class="data-table" id="pickPriorityTable" style="display:none;">
+          <thead><tr><th>Hero</th><th>Avg Pick Ke-</th><th>Freq</th><th>WR</th></tr></thead>
+          <tbody id="pickPriorityBody"></tbody>
+        </table>
+        <div id="pickPriorityEmpty" style="font-size:11.5px; color:var(--mute);">Data draft order sedang dikumpulkan — terus tambah game di Draft Simulator untuk mengisi bagian ini.</div>
       </section>
 
       <section class="panel-section" id="sec-ban">
@@ -412,6 +430,19 @@ input.field[type=number]{ text-align:center; }
         <table class="data-table">
           <thead><tr><th>Hero</th><th>Diban Tim Ini</th><th>Diban Lawan</th></tr></thead>
           <tbody id="banTableBody"></tbody>
+        </table>
+
+        <div class="sub-title">Priority Ban — Seberapa Cepat Mereka Ngeban Hero</div>
+        <div class="sub-desc">Rata-rata posisi ban tiap hero (makin kecil = makin diprioritaskan). Memakai seluruh urutan ban, bukan cuma posisi pertama.</div>
+        <div class="sub-title-2" style="color:var(--gold);">Ban Milik Tim Ini (hero lawan yang paling diprioritaskan diban)</div>
+        <table class="data-table" style="margin-bottom:16px;">
+          <thead><tr><th>Hero</th><th>Diban</th><th>Rata² Posisi</th><th>Interpretasi</th></tr></thead>
+          <tbody id="banPriorityOwnBody"></tbody>
+        </table>
+        <div class="sub-title-2" style="color:var(--red);">Hero Tim Ini yang Paling Ditakuti Lawan</div>
+        <table class="data-table">
+          <thead><tr><th>Hero</th><th>Diban</th><th>Rata² Posisi</th><th>Interpretasi</th></tr></thead>
+          <tbody id="banPriorityOppBody"></tbody>
         </table>
       </section>
 
@@ -644,6 +675,7 @@ function normalizeRow(m){
     ResultA:resA, ResultB:resB,
     BluePicks:m.BluePicks||'', RedPicks:m.RedPicks||'',
     BlueBans:m.BlueBans||'', RedBans:m.RedBans||'',
+    BlueDraftOrder:m.BlueDraftOrder||'', RedDraftOrder:m.RedDraftOrder||'',
   };
 }
 
@@ -666,6 +698,7 @@ async function loadMasterData(){
       TeamA:m.team_a, TeamB:m.team_b, Winner:m.winner, Time:m.time,
       ResultA:m.result_a, ResultB:m.result_b,
       BluePicks:m.blue_picks, RedPicks:m.red_picks, BlueBans:m.blue_bans, RedBans:m.red_bans,
+      BlueDraftOrder:m.blue_draft_order, RedDraftOrder:m.red_draft_order,
     }));
     const teamSet = new Set();
     allRows.forEach(r=>{ if(r.TeamA) teamSet.add(r.TeamA); if(r.TeamB) teamSet.add(r.TeamB); });
@@ -701,7 +734,7 @@ function computeTeamStats(team){
   const sideGames={Blue:{win:0,loss:0}, Red:{win:0,loss:0}};
   const POSITION_ROLES=['EXP','Jungle','Mid','Gold','Support'];
   const positionalRoleStats={}, positionalHeroByRole={};
-  const oppBanPositionStats={};
+  const banPositionStats={}, oppBanPositionStats={};
 
   allRows.forEach(r=>{
     const isBlue = r.TeamA===team, isRed = r.TeamB===team;
@@ -725,6 +758,10 @@ function computeTeamStats(team){
     });
     myBans.forEach(h=> bansBy[h]=(bansBy[h]||0)+1);
     oppBans.forEach(h=> bansAgainst[h]=(bansAgainst[h]||0)+1);
+    myBans.forEach((h,idx)=>{
+      if(!banPositionStats[h]) banPositionStats[h]={sum:0,count:0};
+      banPositionStats[h].sum+=idx; banPositionStats[h].count++;
+    });
     oppBans.forEach((h,idx)=>{
       if(!oppBanPositionStats[h]) oppBanPositionStats[h]={sum:0,count:0};
       oppBanPositionStats[h].sum+=idx; oppBanPositionStats[h].count++;
@@ -754,7 +791,7 @@ function computeTeamStats(team){
 
   const result = { team, games, wins, wr, blueWR, redWR, blueTot, redTot, picks, heroGames, bansBy, bansAgainst,
     detail, avgWinDur:avg(durWin), avgLossDur:avg(durLoss), gamesWithPerGameData,
-    positionalRoleStats, positionalHeroByRole, oppBanPositionStats };
+    positionalRoleStats, positionalHeroByRole, banPositionStats, oppBanPositionStats };
   _teamStatsCache[team] = result;
   return result;
 }
@@ -833,6 +870,52 @@ function renderTeamAnalysis(team){
     <td><div class="bar-cell"><span class="mono" style="width:16px;font-size:11px;">${r.by}</span><div class="bar-track"><div class="bar-fill" style="width:${r.by/maxBan*100}%; background:var(--blue);"></div></div></div></td>
     <td><div class="bar-cell"><span class="mono" style="width:16px;font-size:11px;">${r.against}</span><div class="bar-track"><div class="bar-fill" style="width:${r.against/maxBan*100}%; background:var(--red);"></div></div></div></td>
     </tr>`).join('') || `<tr><td colspan="3" style="color:var(--mute);">Belum ada data ban.</td></tr>`;
+
+  // PRIORITY PICK (dari BlueDraftOrder/RedDraftOrder — urutan pick riil dari Draft Simulator)
+  const pickPosStats = {};
+  allRows.forEach(r=>{
+    const isBlue = r.TeamA===team, isRed = r.TeamB===team;
+    if(!isBlue && !isRed) return;
+    const draftOrder = isBlue ? r.BlueDraftOrder : r.RedDraftOrder;
+    if(!draftOrder) return;
+    const won = r.Winner===team;
+    splitHeroes(draftOrder).forEach((h,idx)=>{
+      if(!h) return;
+      if(!pickPosStats[h]) pickPosStats[h]={sum:0,count:0,wins:0,losses:0};
+      pickPosStats[h].sum += (idx+1); pickPosStats[h].count++;
+      won ? pickPosStats[h].wins++ : pickPosStats[h].losses++;
+    });
+  });
+  const pickPriorityRows = Object.entries(pickPosStats)
+    .map(([h,v])=>({h, avg:Math.round(v.sum/v.count*10)/10, count:v.count, wr:v.count?Math.round(v.wins/v.count*1000)/10:0}))
+    .filter(x=>x.count>=2).sort((a,b)=>a.avg-b.avg);
+  const ppTable = document.getElementById('pickPriorityTable');
+  const ppEmpty = document.getElementById('pickPriorityEmpty');
+  if(pickPriorityRows.length>=3){
+    ppTable.style.display=''; ppEmpty.style.display='none';
+    document.getElementById('pickPriorityBody').innerHTML = pickPriorityRows.map(x=>{
+      const wrc = x.wr>=55?'var(--green)':x.wr>=40?'var(--gold)':'var(--red)';
+      return `<tr><td><div class="hero-cell">${heroIconHTML(x.h)}<span class="hero-name">${x.h}</span></div></td>
+        <td style="color:var(--gold); font-weight:700;">ke-${x.avg}</td><td class="mono">${x.count}x</td>
+        <td style="color:${wrc}; font-weight:600;">${x.wr}%</td></tr>`;
+    }).join('');
+  } else { ppTable.style.display='none'; ppEmpty.style.display=''; }
+
+  // PRIORITY BAN (posisi rata-rata ban — makin kecil makin diprioritaskan)
+  const renderBanPriority = (posStats, bodyId) => {
+    const rows = Object.entries(posStats).filter(([,v])=>v.count>=2)
+      .map(([h,v])=>({h, avgPos:v.sum/v.count, count:v.count})).sort((a,b)=>a.avgPos-b.avgPos).slice(0,8);
+    document.getElementById(bodyId).innerHTML = rows.length ? rows.map(r=>{
+      const avgDisp = Math.round(r.avgPos*10)/10;
+      const urgency = avgDisp<1 ? `<span style="color:var(--red); font-weight:600;">Sangat urgent</span>`
+        : avgDisp<2 ? `<span style="color:var(--gold);">Prioritas tinggi</span>`
+        : `<span style="color:var(--mute);">Situasional</span>`;
+      return `<tr><td><div class="hero-cell">${heroIconHTML(r.h)}<span class="hero-name">${r.h}</span></div></td>
+        <td class="mono">${r.count}x</td><td class="mono">posisi ke-${avgDisp+1}</td><td>${urgency}</td></tr>`;
+    }).join('') : `<tr><td colspan="4" style="color:var(--mute);">Belum ada sample cukup (min. 2x diban)</td></tr>`;
+  };
+  renderBanPriority(s.banPositionStats, 'banPriorityOwnBody');
+  renderBanPriority(s.oppBanPositionStats, 'banPriorityOppBody');
 
   document.getElementById('roleList').innerHTML = SIM_ROLES.map(role=>{
     const v = s.positionalRoleStats[role];
@@ -1057,9 +1140,21 @@ document.getElementById('simUndoBtn').addEventListener('click', ()=>{
 
 function simHeroImgTag(hero){
   const url = heroImageURL.get(normKey(hero));
-  if(url) return `<img class="sc-img" src="${url}" loading="lazy">`;
+  if(url) return `<img class="sc-img" src="${url}">`;
   const initials = hero.split(/[\s\-]/).map(w=>w[0]||'').join('').slice(0,2).toUpperCase();
   return `<div class="sc-fallback">${initials}</div>`;
+}
+function simSetRole(step, role){
+  const hero = simState.slots[step];
+  if(!hero) return;
+  const seqItem = DRAFT_SEQUENCE.find(s=>s.step===step);
+  // Role cuma boleh dipakai 1x per sisi — lepas dari pick lain yang sebelumnya pakai role ini
+  DRAFT_SEQUENCE.filter(s=>s.type==='pick' && s.side===seqItem.side && s.step!==step).forEach(s=>{
+    const h = simState.slots[s.step];
+    if(h && simState.roleAssign[h]===role) delete simState.roleAssign[h];
+  });
+  simState.roleAssign[hero] = role;
+  simRenderBoard();
 }
 function simRenderCard(seqItem){
   const step = seqItem.step;
@@ -1077,7 +1172,18 @@ function simRenderCard(seqItem){
   } else {
     inner = `<div class="sc-empty" style="opacity:.4;">${seqItem.type==='ban'?'BAN':'PICK'}</div>`;
   }
-  return `<div class="${cls}" ${clickAttr}>${inner}</div>`;
+  let roleEl = '';
+  if(!isBan){
+    const usedRoles = DRAFT_SEQUENCE.filter(s=>s.type==='pick' && s.side===seqItem.side && s.step!==step)
+      .map(s=>simState.roleAssign[simState.slots[s.step]]).filter(Boolean);
+    const availRoles = SIM_ROLES.filter(r=>!usedRoles.includes(r));
+    const curRole = hero ? (simState.roleAssign[hero]||'') : '';
+    const opts = availRoles.map(r=>`<option value="${r}"${r===curRole?' selected':''}>${r}</option>`).join('');
+    roleEl = `<select class="sc-role" data-step="${step}" onclick="event.stopPropagation()" onchange="simSetRole(${step},this.value)" ${!hero?'disabled style="opacity:.3;"':''}>
+      <option value="">Role</option>${opts}
+    </select>`;
+  }
+  return `<div class="${cls}" ${clickAttr}>${inner}${roleEl}</div>`;
 }
 function simRenderBoard(){
   const render = (id, filter) => { document.getElementById(id).innerHTML = DRAFT_SEQUENCE.filter(filter).map(simRenderCard).join(''); };
@@ -1223,7 +1329,7 @@ function simRenderHeroGrid(query){
   const filtered = (query ? all.filter(h=>h.toLowerCase().includes(query.toLowerCase())) : all).filter(h=>!used.has(normKey(h)));
   document.getElementById('heroPickerGrid').innerHTML = filtered.map(h=>{
     const url = heroImageURL.get(normKey(h));
-    const img = url ? `<img src="${url}" loading="lazy">` : `<div class="hg-fallback">${h.split(/[\s\-]/).map(w=>w[0]||'').join('').slice(0,2).toUpperCase()}</div>`;
+    const img = url ? `<img src="${url}">` : `<div class="hg-fallback">${h.split(/[\s\-]/).map(w=>w[0]||'').join('').slice(0,2).toUpperCase()}</div>`;
     return `<div class="hero-grid-item" data-hero="${h.replace(/"/g,'&quot;')}">${img}<div class="hg-name">${h}</div></div>`;
   }).join('');
   document.getElementById('heroPickerGrid').querySelectorAll('.hero-grid-item').forEach(item=>{
