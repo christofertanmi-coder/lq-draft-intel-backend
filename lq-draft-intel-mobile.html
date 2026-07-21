@@ -326,8 +326,26 @@ input.field[type=number]{ text-align:center; }
   border:1px solid var(--border); margin-bottom:12px;
 }
 .phase-block{ margin-bottom:14px; }
-.phase-block-title{ font-size:10px; color:var(--mute); text-transform:uppercase; letter-spacing:.08em; margin-bottom:6px; }
-.side-cards-row{ display:flex; gap:8px; overflow-x:auto; padding-bottom:4px; }
+.phase-block-title{ font-size:10px; color:var(--mute); text-transform:uppercase; letter-spacing:.08em; margin-bottom:6px; margin-top:10px; }
+.side-cards-row{ display:flex; gap:8px; overflow-x:auto; padding-bottom:4px; flex-wrap:wrap; }
+
+.team-block{
+  border:1px solid var(--border); border-radius:14px; padding:14px; margin-bottom:12px; background:var(--panel);
+  transition:background .25s ease, border-color .25s ease, box-shadow .25s ease;
+}
+.team-block.blue{ border-color:rgba(78,147,233,.3); }
+.team-block.red{ border-color:rgba(225,84,75,.3); }
+.team-block-name{
+  font-family:'Rajdhani',sans-serif; font-weight:700; font-size:15px; margin-bottom:2px;
+}
+.team-block-name.blue{ color:var(--blue); } .team-block-name.red{ color:var(--red); }
+.team-block .phase-block-title:first-of-type{ margin-top:6px; }
+/* Giliran tim ini — highlight background emas biar langsung kelihatan tanpa perlu baca teks */
+.team-block.active-turn{
+  background:linear-gradient(135deg, rgba(227,181,100,.16), var(--panel) 65%);
+  border-color:var(--gold);
+  box-shadow:0 0 0 1px rgba(227,181,100,.25), 0 8px 24px rgba(227,181,100,.12);
+}
 .slot-card{
   flex:none; width:60px; border-radius:8px; border:1px dashed var(--border); background:var(--panel-2);
   display:flex; flex-direction:column; align-items:stretch; overflow:hidden; cursor:default;
@@ -514,14 +532,16 @@ input.field[type=number]{ text-align:center; }
       </div>
       <div class="phase-bar" id="simPhaseBar"></div>
 
-      <div class="phase-block"><div class="phase-block-title">Ban — Fase 1 · Blue</div><div class="side-cards-row" id="simBanP1Blue"></div></div>
-      <div class="phase-block"><div class="phase-block-title">Ban — Fase 1 · Red</div><div class="side-cards-row" id="simBanP1Red"></div></div>
-      <div class="phase-block"><div class="phase-block-title">Pick — Fase 1 · Blue</div><div class="side-cards-row" id="simPickP1Blue"></div></div>
-      <div class="phase-block"><div class="phase-block-title">Pick — Fase 1 · Red</div><div class="side-cards-row" id="simPickP1Red"></div></div>
-      <div class="phase-block"><div class="phase-block-title">Ban — Fase 2 · Red</div><div class="side-cards-row" id="simBanP2Red"></div></div>
-      <div class="phase-block"><div class="phase-block-title">Ban — Fase 2 · Blue</div><div class="side-cards-row" id="simBanP2Blue"></div></div>
-      <div class="phase-block"><div class="phase-block-title">Pick — Fase 2 · Red</div><div class="side-cards-row" id="simPickP2Red"></div></div>
-      <div class="phase-block"><div class="phase-block-title">Pick — Fase 2 · Blue</div><div class="side-cards-row" id="simPickP2Blue"></div></div>
+      <div class="team-block blue" id="simTeamBlockBlue">
+        <div class="team-block-name blue" id="simTeamBlockNameBlue">Blue</div>
+        <div class="phase-block-title">Ban</div><div class="side-cards-row" id="simBanBlue"></div>
+        <div class="phase-block-title">Pick</div><div class="side-cards-row" id="simPickBlue"></div>
+      </div>
+      <div class="team-block red" id="simTeamBlockRed">
+        <div class="team-block-name red" id="simTeamBlockNameRed">Red</div>
+        <div class="phase-block-title">Ban</div><div class="side-cards-row" id="simBanRed"></div>
+        <div class="phase-block-title">Pick</div><div class="side-cards-row" id="simPickRed"></div>
+      </div>
 
       <div class="suggestion-panel" id="simSuggestionBar"></div>
 
@@ -1214,20 +1234,24 @@ function simRenderCard(seqItem){
   return `<div class="${cls}" ${clickAttr}>${inner}${roleEl}</div>`;
 }
 function simRenderBoard(){
-  const render = (id, filter) => { document.getElementById(id).innerHTML = DRAFT_SEQUENCE.filter(filter).map(simRenderCard).join(''); };
-  render('simBanP1Blue',  s=>s.type==='ban'  && s.phase===1 && s.side==='B');
-  render('simBanP1Red',   s=>s.type==='ban'  && s.phase===1 && s.side==='R');
-  render('simPickP1Blue', s=>s.type==='pick' && s.phase===1 && s.side==='B');
-  render('simPickP1Red',  s=>s.type==='pick' && s.phase===1 && s.side==='R');
-  render('simBanP2Red',   s=>s.type==='ban'  && s.phase===2 && s.side==='R');
-  render('simBanP2Blue',  s=>s.type==='ban'  && s.phase===2 && s.side==='B');
-  render('simPickP2Red',  s=>s.type==='pick' && s.phase===2 && s.side==='R');
-  render('simPickP2Blue', s=>s.type==='pick' && s.phase===2 && s.side==='B');
+  // Ditampilkan per tim (Ban + Pick digabung, urut kronologis), bukan per fase —
+  // lebih gampang dipindai saat casting live.
+  const render = (id, filter) => { document.getElementById(id).innerHTML = DRAFT_SEQUENCE.filter(filter).sort((a,b)=>a.step-b.step).map(simRenderCard).join(''); };
+  render('simBanBlue',  s=>s.type==='ban'  && s.side==='B');
+  render('simPickBlue', s=>s.type==='pick' && s.side==='B');
+  render('simBanRed',   s=>s.type==='ban'  && s.side==='R');
+  render('simPickRed',  s=>s.type==='pick' && s.side==='R');
+
+  document.getElementById('simTeamBlockNameBlue').textContent = simState.teamA || 'Blue';
+  document.getElementById('simTeamBlockNameRed').textContent = simState.teamB || 'Red';
 
   const phaseBar = document.getElementById('simPhaseBar');
+  const blockBlue = document.getElementById('simTeamBlockBlue');
+  const blockRed = document.getElementById('simTeamBlockRed');
   if(simDone()){
     phaseBar.textContent = '✓ Draft selesai — pilih pemenang & simpan.';
     phaseBar.style.color = 'var(--green)';
+    blockBlue.classList.remove('active-turn'); blockRed.classList.remove('active-turn');
     document.getElementById('simResultCard').style.display='block';
     const ws = document.getElementById('simWinner');
     ws.innerHTML = `<option value="">— pilih —</option><option value="${simState.teamA}">${simState.teamA} (Blue)</option><option value="${simState.teamB}">${simState.teamB} (Red)</option>`;
@@ -1238,6 +1262,8 @@ function simRenderBoard(){
     const sideColor = cur.side==='B' ? 'var(--blue)' : 'var(--red)';
     phaseBar.innerHTML = `Step ${cur.step}/20 — <span style="color:${sideColor};">${sideTeam}</span> ${cur.type==='ban'?'🚫 BAN':'⚔ PICK'}: <b>${cur.label}</b>`;
     phaseBar.style.color = 'var(--gold)';
+    blockBlue.classList.toggle('active-turn', cur.side==='B');
+    blockRed.classList.toggle('active-turn', cur.side==='R');
     simRenderSuggestion(cur);
   }
 }
