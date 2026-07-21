@@ -380,6 +380,12 @@ input.field[type=number]{ text-align:center; }
 .suggestion-panel table{ width:100%; border-collapse:collapse; font-size:11px; }
 .suggestion-panel td{ padding:5px 4px; vertical-align:top; border-top:1px solid var(--border); }
 .suggestion-panel .role-tag{ font-weight:700; font-size:11.5px; }
+.counter-panel{ border-color:rgba(78,147,233,.35); }
+.counter-panel .sg-head{ color:var(--blue); }
+.counter-panel .ci-row{ display:flex; gap:8px; margin-top:8px; flex-wrap:wrap; align-items:baseline; }
+.counter-panel .ci-lbl{ font-size:9.5px; color:var(--mute); text-transform:uppercase; letter-spacing:.05em; min-width:100%; }
+.counter-panel .ci-item{ font-size:11px; }
+.counter-panel .ci-item b{ color:var(--ink); }
 
 .result-card{ background:var(--panel); border:1px solid rgba(62,217,139,.35); border-radius:12px; padding:16px; margin-top:14px; }
 
@@ -547,6 +553,8 @@ input.field[type=number]{ text-align:center; }
         <div class="phase-block-title">Ban</div><div class="side-cards-row" id="simBanRed"></div>
         <div class="phase-block-title">Pick</div><div class="side-cards-row" id="simPickRed"></div>
       </div>
+
+      <div class="suggestion-panel counter-panel" id="simCounterIntelBar" style="display:none;"></div>
 
       <div class="suggestion-panel" id="simSuggestionBar"></div>
 
@@ -874,6 +882,79 @@ function computeGlobalHeroStats(){
   return _globalHeroStatsCache;
 }
 
+// ── ANTISIPASI (ported dari computeCounterIntel PC) — pola hero-vs-hero global ──
+let _counterIntelCache = null;
+function computeCounterIntel(){
+  if(_counterIntelCache) return _counterIntelCache;
+  const heroCounters = {};  // hero -> {oppHero -> {win,loss}} (head-to-head vs sisi lawan)
+  const heroFollow = {};    // hero -> {nextHero -> {win,loss}} (dipick tim sama setelah hero ini, dari draft order)
+  const banResponse = {};   // bannedHero -> {pickedHero -> {win,loss}} (kalau hero ini diban, tim pemban pick apa)
+  const bump = (map,k1,k2,win)=>{
+    if(!map[k1]) map[k1]={};
+    if(!map[k1][k2]) map[k1][k2]={win:0,loss:0};
+    map[k1][k2][win?'win':'loss']++;
+  };
+  allRows.forEach(r=>{
+    const bp=splitHeroes(r.BluePicks), rp=splitHeroes(r.RedPicks);
+    const bb=splitHeroes(r.BlueBans), rb=splitHeroes(r.RedBans);
+    if(!bp.length || !rp.length) return;
+    const blueWon = r.Winner===r.TeamA;
+    bp.forEach(hb=> rp.forEach(hr=>{ bump(heroCounters,hb,hr,blueWon); bump(heroCounters,hr,hb,!blueWon); }));
+    bb.forEach(banned=> bp.forEach(picked=> bump(banResponse,banned,picked,blueWon)));
+    rb.forEach(banned=> rp.forEach(picked=> bump(banResponse,banned,picked,!blueWon)));
+    const bdo=splitHeroes(r.BlueDraftOrder), rdo=splitHeroes(r.RedDraftOrder);
+    for(let i=0;i<bdo.length-1;i++) bump(heroFollow,bdo[i],bdo[i+1],blueWon);
+    for(let i=0;i<rdo.length-1;i++) bump(heroFollow,rdo[i],rdo[i+1],!blueWon);
+  });
+  _counterIntelCache = { heroCounters, heroFollow, banResponse };
+  return _counterIntelCache;
+}
+
+// Render "Antisipasi" untuk hero yang baru saja dipick/diban — muncul sebagai bahan
+// pembicaraan otomatis, tanpa perlu pilih hero manual dari dropdown (beda dari versi PC).
+function simRenderCounterIntel(hero, seqItem){
+  const el = document.getElementById('simCounterIntelBar');
+  if(!hero || !allRows.length){ el.style.display='none'; return; }
+  const { heroCounters, heroFollow, banResponse } = computeCounterIntel();
+  const MIN_SAMPLE = 3;
+  const fmt = (map, key, label) => {
+    const entries = Object.entries(map[key]||{})
+      .map(([h,v])=>({h, tot:v.win+v.loss, wr: (v.win+v.loss)? Math.round(v.win/(v.win+v.loss)*1000)/10 : 0}))
+      .filter(x=>x.tot>=MIN_SAMPLE);
+    return entries;
+  };
+  let html = '';
+  const isBan = seqItem.type==='ban';
+  const side = seqItem.side==='B' ? 'var(--blue)' : 'var(--red)';
+
+  if(isBan){
+    // Kalau hero ini diban, tim pemban biasanya pick apa sebagai gantinya
+    const responses = fmt(banResponse, hero).sort((a,b)=>b.tot-a.tot).slice(0,4);
+    html += `<div class="sg-head">🎯 Antisipasi — ${hero} diban</div>`;
+    html += `<div class="ci-row"><span class="ci-lbl">Biasanya pemban lanjut pick</span>${
+      responses.length ? responses.map(x=>`<span class="ci-item"><b>${x.h}</b> <span style="color:var(--mute);">(${x.wr}%/${x.tot}g)</span></span>`).join(' · ')
+      : '<span style="color:var(--mute);">Belum ada sample cukup.</span>'
+    }</div>`;
+  } else {
+    // Counter historis (hero yang WR-nya bagus LAWAN hero ini) + follow-up pick (pola urutan draft)
+    const counters = fmt(heroCounters, hero)
+      .map(x=>({...x, counterWr: 100-x.wr})) // wr di sini = WR hero terhadap x.h, jadi counter = kebalikannya
+      .sort((a,b)=>b.counterWr-a.counterWr).slice(0,4);
+    const follows = fmt(heroFollow, hero).sort((a,b)=>b.tot-a.tot).slice(0,4);
+    html += `<div class="sg-head">🎯 Antisipasi — ${hero} dipick</div>`;
+    html += `<div class="ci-row"><span class="ci-lbl">Counter historis (WR ${hero} rendah lawan hero ini)</span>${
+      counters.length ? counters.map(x=>`<span class="ci-item"><b>${x.h}</b> <span style="color:var(--red);">(${x.counterWr}%/${x.tot}g)</span></span>`).join(' · ')
+      : '<span style="color:var(--mute);">Belum ada sample cukup.</span>'
+    }</div>`;
+    html += `<div class="ci-row"><span class="ci-lbl">Sering dipick lanjutan setelah ${hero}</span>${
+      follows.length ? follows.map(x=>`<span class="ci-item"><b>${x.h}</b> <span style="color:var(--mute);">(${x.wr}%/${x.tot}g)</span></span>`).join(' · ')
+      : '<span style="color:var(--mute);">Belum ada sample cukup.</span>'
+    }</div>`;
+  }
+  el.innerHTML = html;
+  el.style.display = 'block';
+}
+
 // ============================================================
 // RENDER: ANALISA TIM
 // ============================================================
@@ -1171,6 +1252,7 @@ document.getElementById('simStartBtn').addEventListener('click', ()=>{
   document.getElementById('simResultCard').style.display='none';
   document.getElementById('simNextGameBox').style.display='none';
   document.getElementById('simSaveStatus').textContent='';
+  document.getElementById('simCounterIntelBar').style.display='none';
   document.getElementById('simBoardWrap').style.display='block';
   simRenderBoard();
   document.getElementById('simBoardWrap').scrollIntoView({behavior:'smooth', block:'start'});
@@ -1188,6 +1270,7 @@ document.getElementById('simUndoBtn').addEventListener('click', ()=>{
   const hero = simState.slots[step];
   if(hero){ delete simState.roleAssign[hero]; delete simState.slots[step]; }
   document.getElementById('simResultCard').style.display='none';
+  document.getElementById('simCounterIntelBar').style.display='none';
   simRenderBoard();
 });
 
@@ -1417,6 +1500,7 @@ function simPickHero(hero){
     }
     closeHeroPicker();
     simRenderBoard();
+    simRenderCounterIntel(hero, seqItem);
     if(seqItem.type==='pick') openRolePicker(step, hero);
     return;
   }
@@ -1430,6 +1514,7 @@ function simPickHero(hero){
   simState.currentStep++;
   closeHeroPicker();
   simRenderBoard();
+  simRenderCounterIntel(hero, seqItem);
   if(seqItem.type==='pick') openRolePicker(step, hero);
 }
 
