@@ -386,6 +386,18 @@ input.field[type=number]{ text-align:center; }
 .counter-panel .ci-lbl{ font-size:9.5px; color:var(--mute); text-transform:uppercase; letter-spacing:.05em; min-width:100%; }
 .counter-panel .ci-item{ font-size:11px; }
 .counter-panel .ci-item b{ color:var(--ink); }
+.counter-panel .sg-sub{ font-size:10px; color:var(--mute); margin:-4px 0 10px; }
+.ci-slider{ display:flex; gap:10px; overflow-x:auto; scroll-snap-type:x mandatory; padding-bottom:6px; margin:0 -14px; padding-left:14px; padding-right:14px; }
+.ci-card{
+  flex:0 0 82%; scroll-snap-align:start; background:var(--panel-2); border:1px solid var(--border); border-radius:10px; padding:12px;
+}
+.ci-card-title{ font-size:10.5px; font-weight:700; color:var(--blue); text-transform:uppercase; letter-spacing:.04em; margin-bottom:8px; }
+.ci-card-list{ display:flex; flex-direction:column; gap:6px; }
+.ci-card-row{ display:flex; justify-content:space-between; align-items:center; font-size:11.5px; gap:8px; }
+.ci-card-row .ci-name{ color:var(--ink); font-weight:600; }
+.ci-card-empty{ color:var(--mute); font-size:11px; }
+.ci-dots{ display:flex; gap:5px; justify-content:center; margin-top:6px; }
+.ci-dots span{ width:5px; height:5px; border-radius:50%; background:var(--border); }
 
 .result-card{ background:var(--panel); border:1px solid rgba(62,217,139,.35); border-radius:12px; padding:16px; margin-top:14px; }
 
@@ -554,9 +566,9 @@ input.field[type=number]{ text-align:center; }
         <div class="phase-block-title">Pick</div><div class="side-cards-row" id="simPickRed"></div>
       </div>
 
-      <div class="suggestion-panel counter-panel" id="simCounterIntelBar" style="display:none;"></div>
-
       <div class="suggestion-panel" id="simSuggestionBar"></div>
+
+      <div class="suggestion-panel counter-panel" id="simCounterIntelBar" style="display:none;"></div>
 
       <div class="btn-row" style="margin-top:14px;">
         <button class="btn" id="simUndoBtn" style="flex:1;">↺ Undo</button>
@@ -910,48 +922,100 @@ function computeCounterIntel(){
   return _counterIntelCache;
 }
 
-// Render "Antisipasi" untuk hero yang baru saja dipick/diban — muncul sebagai bahan
-// pembicaraan otomatis, tanpa perlu pilih hero manual dari dropdown (beda dari versi PC).
-function simRenderCounterIntel(hero, seqItem){
+// Antisipasi — dihitung ulang dari SELURUH state draft saat ini (semua pick+ban kedua sisi),
+// bukan cuma reaksi ke 1 hero terakhir. Ditampilkan sebagai 1 kotak berisi kartu-kartu yang
+// bisa di-swipe, biar tidak numpuk jadi banyak panel terpisah.
+function simRenderCounterIntel(){
   const el = document.getElementById('simCounterIntelBar');
-  if(!hero || !allRows.length){ el.style.display='none'; return; }
+  if(!allRows.length){ el.style.display='none'; return; }
+
+  const filledSlots = DRAFT_SEQUENCE.filter(s=>simState.slots[s.step]);
+  if(!filledSlots.length){ el.style.display='none'; return; }
+
   const { heroCounters, heroFollow, banResponse } = computeCounterIntel();
   const MIN_SAMPLE = 3;
-  const fmt = (map, key, label) => {
-    const entries = Object.entries(map[key]||{})
-      .map(([h,v])=>({h, tot:v.win+v.loss, wr: (v.win+v.loss)? Math.round(v.win/(v.win+v.loss)*1000)/10 : 0}))
-      .filter(x=>x.tot>=MIN_SAMPLE);
-    return entries;
-  };
-  let html = '';
-  const isBan = seqItem.type==='ban';
-  const side = seqItem.side==='B' ? 'var(--blue)' : 'var(--red)';
+  const used = new Set(Object.values(simState.slots).map(h=>normKey(h)));
+  const allHeroes = simAllHeroNames();
 
-  if(isBan){
-    // Kalau hero ini diban, tim pemban biasanya pick apa sebagai gantinya
-    const responses = fmt(banResponse, hero).sort((a,b)=>b.tot-a.tot).slice(0,4);
-    html += `<div class="sg-head">🎯 Antisipasi — ${hero} diban</div>`;
-    html += `<div class="ci-row"><span class="ci-lbl">Biasanya pemban lanjut pick</span>${
-      responses.length ? responses.map(x=>`<span class="ci-item"><b>${x.h}</b> <span style="color:var(--mute);">(${x.wr}%/${x.tot}g)</span></span>`).join(' · ')
-      : '<span style="color:var(--mute);">Belum ada sample cukup.</span>'
-    }</div>`;
-  } else {
-    // Counter historis (hero yang WR-nya bagus LAWAN hero ini) + follow-up pick (pola urutan draft)
-    const counters = fmt(heroCounters, hero)
-      .map(x=>({...x, counterWr: 100-x.wr})) // wr di sini = WR hero terhadap x.h, jadi counter = kebalikannya
-      .sort((a,b)=>b.counterWr-a.counterWr).slice(0,4);
-    const follows = fmt(heroFollow, hero).sort((a,b)=>b.tot-a.tot).slice(0,4);
-    html += `<div class="sg-head">🎯 Antisipasi — ${hero} dipick</div>`;
-    html += `<div class="ci-row"><span class="ci-lbl">Counter historis (WR ${hero} rendah lawan hero ini)</span>${
-      counters.length ? counters.map(x=>`<span class="ci-item"><b>${x.h}</b> <span style="color:var(--red);">(${x.counterWr}%/${x.tot}g)</span></span>`).join(' · ')
-      : '<span style="color:var(--mute);">Belum ada sample cukup.</span>'
-    }</div>`;
-    html += `<div class="ci-row"><span class="ci-lbl">Sering dipick lanjutan setelah ${hero}</span>${
-      follows.length ? follows.map(x=>`<span class="ci-item"><b>${x.h}</b> <span style="color:var(--mute);">(${x.wr}%/${x.tot}g)</span></span>`).join(' · ')
-      : '<span style="color:var(--mute);">Belum ada sample cukup.</span>'
-    }</div>`;
-  }
-  el.innerHTML = html;
+  const cur = simDone() ? null : DRAFT_SEQUENCE[simState.currentStep];
+  const mySide = cur ? cur.side : null;
+  const oppSide = cur ? (cur.side==='B'?'R':'B') : null;
+
+  const oppPicks = filledSlots.filter(s=>s.type==='pick' && s.side===(oppSide||'R')).map(s=>simState.slots[s.step]);
+  const myPicks  = filledSlots.filter(s=>s.type==='pick' && s.side===(mySide||'B')).map(s=>simState.slots[s.step]);
+  const allBans  = filledSlots.filter(s=>s.type==='ban').map(s=>simState.slots[s.step]);
+
+  // KARTU 1 — Ancaman Teratas: dari SEMUA pick lawan sejauh ini, hero (belum dipakai) mana yang
+  // paling sering menang lawan kombinasi itu (rata-rata WR-nya terhadap tiap pick lawan, hero
+  // dengan sample cukup terhadap ≥1 pick lawan).
+  const threatCard = (() => {
+    if(!oppPicks.length) return null;
+    const scores = [];
+    allHeroes.forEach(h=>{
+      if(used.has(normKey(h))) return;
+      let sumWr=0, n=0, totGames=0;
+      oppPicks.forEach(e=>{
+        const v = (heroCounters[h]||{})[e];
+        if(v && (v.win+v.loss)>=MIN_SAMPLE){ sumWr += v.win/(v.win+v.loss)*100; n++; totGames += v.win+v.loss; }
+      });
+      if(n>0) scores.push({h, avgWr: Math.round(sumWr/n*10)/10, coverage:n, totGames});
+    });
+    scores.sort((a,b)=> b.coverage-a.coverage || b.avgWr-a.avgWr);
+    return scores.slice(0,5);
+  })();
+
+  // KARTU 2 — Kombinasi Lanjutan: dari SEMUA pick tim yang sekarang gilirannya, hero apa yang
+  // secara historis paling sering nyusul dipick tim yang sama (frekuensi, bukan WR).
+  const followCard = (() => {
+    if(!myPicks.length) return null;
+    const agg = {};
+    myPicks.forEach(p=>{
+      Object.entries(heroFollow[p]||{}).forEach(([h,v])=>{
+        if(used.has(normKey(h))) return;
+        if(!agg[h]) agg[h]={win:0,loss:0};
+        agg[h].win+=v.win; agg[h].loss+=v.loss;
+      });
+    });
+    return Object.entries(agg).map(([h,v])=>({h, tot:v.win+v.loss, wr:Math.round(v.win/(v.win+v.loss)*1000)/10}))
+      .filter(x=>x.tot>=MIN_SAMPLE).sort((a,b)=>b.tot-a.tot).slice(0,5);
+  })();
+
+  // KARTU 3 — Pola Setelah Ban: dari SEMUA hero yang sudah diban game ini (kedua sisi), hero apa
+  // yang secara historis sering muncul dipick setelah kombinasi ban semacam itu.
+  const banCard = (() => {
+    if(!allBans.length) return null;
+    const agg = {};
+    allBans.forEach(b=>{
+      Object.entries(banResponse[b]||{}).forEach(([h,v])=>{
+        if(used.has(normKey(h))) return;
+        if(!agg[h]) agg[h]={win:0,loss:0};
+        agg[h].win+=v.win; agg[h].loss+=v.loss;
+      });
+    });
+    return Object.entries(agg).map(([h,v])=>({h, tot:v.win+v.loss, wr:Math.round(v.win/(v.win+v.loss)*1000)/10}))
+      .filter(x=>x.tot>=MIN_SAMPLE).sort((a,b)=>b.tot-a.tot).slice(0,5);
+  })();
+
+  const cards = [];
+  if(threatCard) cards.push({title:'⚠ Ancaman Teratas Lawan Pick Mereka', rows: threatCard.map(x=>
+    `<div class="ci-card-row"><span class="ci-name">${x.h}</span><span style="color:var(--red);">${x.avgWr}% avg WR · ${x.coverage} pick tercover</span></div>`)});
+  if(followCard) cards.push({title:'📈 Kombinasi Lanjutan Tim Ini', rows: followCard.map(x=>
+    `<div class="ci-card-row"><span class="ci-name">${x.h}</span><span style="color:var(--mute);">${x.wr}%/${x.tot}g</span></div>`)});
+  if(banCard) cards.push({title:'🚫 Pola Setelah Ban Sejauh Ini', rows: banCard.map(x=>
+    `<div class="ci-card-row"><span class="ci-name">${x.h}</span><span style="color:var(--mute);">${x.wr}%/${x.tot}g</span></div>`)});
+
+  if(!cards.length){ el.style.display='none'; return; }
+
+  el.innerHTML = `
+    <div class="sg-head">🎯 Antisipasi</div>
+    <div class="sg-sub">Berdasarkan seluruh pick &amp; ban draft ini sejauh ini</div>
+    <div class="ci-slider">${cards.map(c=>`
+      <div class="ci-card">
+        <div class="ci-card-title">${c.title}</div>
+        <div class="ci-card-list">${c.rows.join('') || '<span class="ci-card-empty">Belum ada sample cukup.</span>'}</div>
+      </div>`).join('')}</div>
+    ${cards.length>1?`<div class="ci-dots">${cards.map(()=>'<span></span>').join('')}</div>`:''}
+  `;
   el.style.display = 'block';
 }
 
@@ -1354,6 +1418,7 @@ function simRenderBoard(){
     blockRed.classList.toggle('active-turn', cur.side==='R');
     simRenderSuggestion(cur);
   }
+  simRenderCounterIntel();
 }
 
 function simRenderSuggestion(cur){
@@ -1500,7 +1565,6 @@ function simPickHero(hero){
     }
     closeHeroPicker();
     simRenderBoard();
-    simRenderCounterIntel(hero, seqItem);
     if(seqItem.type==='pick') openRolePicker(step, hero);
     return;
   }
@@ -1514,7 +1578,6 @@ function simPickHero(hero){
   simState.currentStep++;
   closeHeroPicker();
   simRenderBoard();
-  simRenderCounterIntel(hero, seqItem);
   if(seqItem.type==='pick') openRolePicker(step, hero);
 }
 
