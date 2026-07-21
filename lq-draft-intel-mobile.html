@@ -256,6 +256,17 @@ main{ padding:0 14px; max-width:640px; margin:0 auto; }
 .team-row-item .tname{ font-size:13.5px; font-weight:600; flex:1; }
 .team-row-item .arrow{ color:var(--mute); font-size:12px; }
 
+.role-picker-grid{ display:flex; flex-direction:column; gap:8px; padding-top:6px; }
+.role-picker-btn{
+  display:flex; align-items:center; gap:12px; padding:14px 16px; border-radius:12px; border:1px solid var(--border);
+  background:var(--panel-2); cursor:pointer; text-align:left;
+}
+.role-picker-btn .rp-dot{ width:11px; height:11px; border-radius:50%; flex:none; }
+.role-picker-btn .rp-name{ font-family:'Rajdhani',sans-serif; font-weight:700; font-size:15px; flex:1; }
+.role-picker-btn.taken{ opacity:.35; }
+.role-picker-btn.current{ border-color:var(--gold); background:rgba(227,181,100,.1); }
+.role-picker-skip{ text-align:center; color:var(--mute); font-size:11.5px; padding:10px 0 2px; cursor:pointer; }
+
 .hero-grid{ display:grid; grid-template-columns:repeat(4, 1fr); gap:8px; overflow-y:auto; padding-top:4px; }
 .hero-grid-item{
   border:1px solid var(--border); border-radius:10px; background:var(--panel-2); text-align:center; cursor:pointer;
@@ -563,6 +574,17 @@ input.field[type=number]{ text-align:center; }
   </div>
   <input class="search-input" id="heroPickerSearch" placeholder="Cari hero...">
   <div class="hero-grid" id="heroPickerGrid" style="margin-top:10px;"></div>
+</div>
+
+<!-- ROLE PICKER POPOUT (muncul otomatis setelah pick hero) -->
+<div class="modal-overlay" id="rolePickerOverlay"></div>
+<div class="modal-card" id="rolePickerModal" style="max-height:60vh;">
+  <div class="modal-handle"></div>
+  <div class="modal-header">
+    <span class="modal-title" id="rolePickerTitle">Pilih Role</span>
+    <span class="modal-close" id="rolePickerClose">✕</span>
+  </div>
+  <div class="role-picker-grid" id="rolePickerGrid"></div>
 </div>
 
 <!-- SETTINGS MODAL -->
@@ -1354,7 +1376,10 @@ function simPickHero(hero){
       const mapped = ARCHETYPE_TO_SLOT[archetype];
       if(mapped && !taken.includes(mapped)) simState.roleAssign[hero] = mapped;
     }
-    closeHeroPicker(); simRenderBoard(); return;
+    closeHeroPicker();
+    simRenderBoard();
+    if(seqItem.type==='pick') openRolePicker(step, hero);
+    return;
   }
   simState.slots[step] = hero;
   const archetype = HERO_ROLE[normKey(hero)];
@@ -1366,7 +1391,35 @@ function simPickHero(hero){
   simState.currentStep++;
   closeHeroPicker();
   simRenderBoard();
+  if(seqItem.type==='pick') openRolePicker(step, hero);
 }
+
+// ── ROLE PICKER POPOUT — muncul otomatis tiap habis pick, biar cepat tanpa buka dropdown manual ──
+function openRolePicker(step, hero){
+  const seqItem = DRAFT_SEQUENCE.find(s=>s.step===step);
+  const teamName = seqItem.side==='B' ? simState.teamA : simState.teamB;
+  const sideColor = seqItem.side==='B' ? 'var(--blue)' : 'var(--red)';
+  document.getElementById('rolePickerTitle').innerHTML = `<span style="color:${sideColor};">${teamName}</span> — Role ${hero}`;
+  const takenRoles = DRAFT_SEQUENCE.filter(s=>s.type==='pick' && s.side===seqItem.side && s.step!==step)
+    .map(s=>simState.roleAssign[simState.slots[s.step]]).filter(Boolean);
+  const curRole = simState.roleAssign[hero] || '';
+  document.getElementById('rolePickerGrid').innerHTML = SIM_ROLES.map(role=>{
+    const isTaken = takenRoles.includes(role) && role!==curRole;
+    const isCurrent = role===curRole;
+    const color = POSITION_ROLE_COLOR[role];
+    return `<div class="role-picker-btn${isTaken?' taken':''}${isCurrent?' current':''}" ${isTaken?'':`onclick="simSetRole(${step},'${role}'); closeRolePicker();"`}>
+      <span class="rp-dot" style="background:${color};"></span><span class="rp-name">${role}</span>${isCurrent?'<span style="color:var(--gold); font-size:11px;">✓ dipilih</span>':''}
+    </div>`;
+  }).join('') + `<div class="role-picker-skip" onclick="closeRolePicker()">Lewati — atur role nanti</div>`;
+  document.getElementById('rolePickerOverlay').classList.add('open');
+  document.getElementById('rolePickerModal').classList.add('open');
+}
+function closeRolePicker(){
+  document.getElementById('rolePickerOverlay').classList.remove('open');
+  document.getElementById('rolePickerModal').classList.remove('open');
+}
+document.getElementById('rolePickerClose').addEventListener('click', closeRolePicker);
+document.getElementById('rolePickerOverlay').addEventListener('click', (e)=>{ if(e.target.id==='rolePickerOverlay') closeRolePicker(); });
 
 // ── Save draft + "next game" flow ──
 let lastSavedPayload = null;

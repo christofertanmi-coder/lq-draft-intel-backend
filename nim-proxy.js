@@ -151,7 +151,7 @@ const MOBILE_HTML_PATH = path.join(__dirname, 'lq-draft-intel-mobile.html');
 function serveMobilePage(res){
   try{
     const html = fs.readFileSync(MOBILE_HTML_PATH, 'utf8');
-    res.writeHead(200, {'Content-Type':'text/html; charset=utf-8'});
+    res.writeHead(200, {'Content-Type':'text/html; charset=utf-8', 'Cache-Control':'no-store, must-revalidate'});
     res.end(html);
   }catch(e){
     res.writeHead(404, {'Content-Type':'text/plain'});
