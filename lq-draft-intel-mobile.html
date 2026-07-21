@@ -272,8 +272,10 @@ main{ padding:0 14px; max-width:640px; margin:0 auto; }
   border:1px solid var(--border); border-radius:10px; background:var(--panel-2); text-align:center; cursor:pointer;
   overflow:hidden;
 }
-.hero-grid-item img, .hero-grid-item .hg-fallback{
-  width:100%; height:20vw; max-height:96px; min-height:56px; object-fit:cover; display:block; background:var(--void);
+/* Kotak 1:1 pakai trik padding-box (bukan aspect-ratio/vw) — paling kompatibel di semua browser */
+.hg-thumb{ position:relative; width:100%; padding-top:100%; background:var(--void); overflow:hidden; }
+.hg-thumb img, .hg-thumb .hg-fallback{
+  position:absolute; inset:0; width:100%; height:100%; object-fit:cover; display:block;
 }
 .hero-grid-item .hg-fallback{ display:flex; align-items:center; justify-content:center; font-size:15px; font-weight:800; color:var(--gold); }
 .hero-grid-item .hg-name{ font-size:9px; padding:4px 2px; white-space:nowrap; overflow:hidden; text-overflow:ellipsis; }
@@ -673,7 +675,7 @@ let heroImageURL = new Map(); // normKey -> public url
 
 function heroIconHTML(heroName){
   const url = heroImageURL.get(normKey(heroName));
-  if(url) return `<img class="hero-icon" src="${url}" alt="${heroName}" loading="lazy">`;
+  if(url) return `<img class="hero-icon" src="${url}" alt="${heroName}" loading="lazy" decoding="async">`;
   const initials = (heroName||'?').split(/[\s-]/).map(w=>w[0]).join('').slice(0,2).toUpperCase();
   return `<div class="hero-fallback">${initials}</div>`;
 }
@@ -1331,9 +1333,11 @@ function simOpenHeroPicker(step){
   const sideColor = seqItem.side==='B' ? 'var(--blue)' : 'var(--red)';
   document.getElementById('heroPickerTitle').innerHTML = `<span style="color:${sideColor};">${sideTeam}</span> — ${seqItem.label}`;
   document.getElementById('heroPickerSearch').value = '';
-  simRenderHeroGrid('');
   document.getElementById('heroPickerOverlay').classList.add('open');
   document.getElementById('heroPickerModal').classList.add('open');
+  // Render grid SETELAH modal kelihatan (bukan sebelum) — supaya loading="lazy" bekerja benar
+  // dan browser tidak decode ratusan gambar sekaligus saat masih tersembunyi (penyebab render pecah/bergaris).
+  simRenderHeroGrid('');
 }
 function closeHeroPicker(){
   document.getElementById('heroPickerOverlay').classList.remove('open');
@@ -1351,8 +1355,8 @@ function simRenderHeroGrid(query){
   const filtered = (query ? all.filter(h=>h.toLowerCase().includes(query.toLowerCase())) : all).filter(h=>!used.has(normKey(h)));
   document.getElementById('heroPickerGrid').innerHTML = filtered.map(h=>{
     const url = heroImageURL.get(normKey(h));
-    const img = url ? `<img src="${url}">` : `<div class="hg-fallback">${h.split(/[\s\-]/).map(w=>w[0]||'').join('').slice(0,2).toUpperCase()}</div>`;
-    return `<div class="hero-grid-item" data-hero="${h.replace(/"/g,'&quot;')}">${img}<div class="hg-name">${h}</div></div>`;
+    const img = url ? `<img src="${url}" decoding="async">` : `<div class="hg-fallback">${h.split(/[\s\-]/).map(w=>w[0]||'').join('').slice(0,2).toUpperCase()}</div>`;
+    return `<div class="hero-grid-item" data-hero="${h.replace(/"/g,'&quot;')}"><div class="hg-thumb">${img}</div><div class="hg-name">${h}</div></div>`;
   }).join('');
   document.getElementById('heroPickerGrid').querySelectorAll('.hero-grid-item').forEach(item=>{
     item.addEventListener('click', ()=> simPickHero(item.dataset.hero));
