@@ -22,6 +22,23 @@ function loadConfig(){
   try { return JSON.parse(fs.readFileSync(CONFIG_PATH, 'utf8')); } catch(e){ return {}; }
 }
 
+// Backup master.csv sebelum pipeline.py meng-overwrite-nya — insurance murah supaya
+// data tidak pernah hilang tanpa jejak (pelajaran dari draft_simulator.csv yang ke-overwrite).
+function backupMasterCsv(){
+  const cfg = loadConfig();
+  const folder = cfg.csvFolder;
+  if(!folder) return;
+  const masterPath = path.join(folder, 'master.csv');
+  if(!fs.existsSync(masterPath)) return;
+  if(fs.statSync(masterPath).size === 0) return;
+  const backupDir = path.join(folder, '_backups');
+  if(!fs.existsSync(backupDir)) fs.mkdirSync(backupDir, { recursive: true });
+  const stamp = new Date().toISOString().replace(/[:.]/g,'-');
+  const dest = path.join(backupDir, `master_${stamp}.csv`);
+  fs.copyFileSync(masterPath, dest);
+  console.log(`[Backup] master.csv -> ${dest}`);
+}
+
 const supabase = (process.env.SUPABASE_URL && process.env.SUPABASE_SERVICE_KEY)
   ? createClient(process.env.SUPABASE_URL, process.env.SUPABASE_SERVICE_KEY)
   : null;
@@ -50,6 +67,7 @@ async function runPipelineAndUpload(reason){
   running = true;
   console.log(`[Orchestrator] Trigger: ${reason}`);
   try{
+    backupMasterCsv();
     await runCmd(`${PYTHON_CMD} "${path.join(__dirname,'pipeline.py')}"`);
     console.log('[Orchestrator] pipeline.py selesai.');
     await runCmd(`${PYTHON_CMD} "${path.join(__dirname,'upload_master.py')}"`);
@@ -71,6 +89,7 @@ async function downloadDraftsAndRun(reason){
   try{
     await runCmd(`${PYTHON_CMD} "${path.join(__dirname,'download_drafts.py')}"`);
     console.log('[Orchestrator] download_drafts.py selesai.');
+    backupMasterCsv();
     await runCmd(`${PYTHON_CMD} "${path.join(__dirname,'pipeline.py')}"`);
     console.log('[Orchestrator] pipeline.py selesai.');
     await runCmd(`${PYTHON_CMD} "${path.join(__dirname,'upload_master.py')}"`);

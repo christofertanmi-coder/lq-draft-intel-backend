@@ -11,7 +11,9 @@ Cara pakai:
 import csv
 import json
 import os
+import shutil
 import sys
+from datetime import datetime
 from pathlib import Path
 
 from dotenv import load_dotenv
@@ -21,6 +23,19 @@ SCRIPT_DIR = Path(__file__).parent
 load_dotenv(SCRIPT_DIR / '.env')
 
 CONFIG_PATH = SCRIPT_DIR / 'lq_config.json'
+
+
+def backup_before_overwrite(file_path: Path):
+    """Simpan salinan file_path (kalau ada isinya) ke _backups/ sebelum ditimpa.
+    Insurance murah supaya overwrite tidak pernah menghilangkan data tanpa jejak."""
+    if not file_path.exists() or file_path.stat().st_size == 0:
+        return
+    backup_dir = file_path.parent / '_backups'
+    backup_dir.mkdir(exist_ok=True)
+    stamp = datetime.now().strftime('%Y%m%d_%H%M%S')
+    dest = backup_dir / f'{file_path.stem}_{stamp}{file_path.suffix}'
+    shutil.copy2(file_path, dest)
+    print(f'[Backup] {file_path.name} -> {dest}')
 
 def load_config():
     try:
@@ -57,6 +72,7 @@ def main():
     drafts = resp.data or []
 
     CSV_FOLDER.mkdir(parents=True, exist_ok=True)
+    backup_before_overwrite(DRAFT_CSV)
     with open(DRAFT_CSV, 'w', newline='', encoding='utf-8') as f:
         writer = csv.writer(f)
         writer.writerow(HEADER)

@@ -35,6 +35,23 @@ function saveConfig(cfg){
 
 function getPipelinePath(){ return path.join(__dirname, 'pipeline.py'); }
 
+// Backup master.csv sebelum pipeline.py meng-overwrite-nya — insurance murah supaya
+// data tidak pernah hilang tanpa jejak.
+function backupMasterCsv(){
+  const cfg = loadConfig();
+  const folder = cfg.csvFolder;
+  if(!folder) return;
+  const masterPath = path.join(folder, 'master.csv');
+  if(!fs.existsSync(masterPath)) return;
+  if(fs.statSync(masterPath).size === 0) return;
+  const backupDir = path.join(folder, '_backups');
+  if(!fs.existsSync(backupDir)) fs.mkdirSync(backupDir, { recursive: true });
+  const stamp = new Date().toISOString().replace(/[:.]/g,'-');
+  const dest = path.join(backupDir, `master_${stamp}.csv`);
+  fs.copyFileSync(masterPath, dest);
+  console.log(`[Backup] master.csv -> ${dest}`);
+}
+
 // ── FILE WATCHER (auto-refresh + auto-run pipeline saat CSV scrape berubah) ──
 let lastChange = Date.now();
 let activeWatcher = null;
@@ -44,6 +61,7 @@ function runPipelineThenUpload(reason){
   if(!fs.existsSync(pipelinePath)) return;
   const pythonCmd = process.platform==='win32' ? 'python' : 'python3';
   console.log(`[Pipeline] Auto-run (${reason})`);
+  backupMasterCsv();
   exec(`${pythonCmd} "${pipelinePath}"`, {timeout:60000}, (err, stdout, stderr)=>{
     if(err){ console.error('[Pipeline] Error:', err.message); return; }
     console.log('[Pipeline] Selesai.');
@@ -283,6 +301,7 @@ const server = http.createServer((req, res)=>{
       const pythonCmd = process.platform==='win32' ? 'python' : 'python3';
       const cmd = `${pythonCmd} "${pipelinePath}"`;
       console.log(`[Pipeline] Menjalankan: ${cmd}`);
+      backupMasterCsv();
       exec(cmd, {timeout: 60000}, (err, stdout, stderr)=>{
         if(err){
           console.error('[Pipeline] Error:', err.message);

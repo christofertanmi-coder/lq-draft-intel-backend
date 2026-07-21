@@ -2,6 +2,7 @@
 node_modules/
 _backup_*/
 draft tim/
+_backups/
 hero_images/
 hero_images.csv
 *.csv
