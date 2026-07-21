@@ -222,9 +222,17 @@ const server = http.createServer((req, res)=>{
     if(req.url==='/read-drafts'&&req.method==='POST'){
       if(!supabase) return sendJSON(res,500,{error:'Supabase belum dikonfigurasi'});
       try{
-        const { data, error } = await supabase.from('drafts').select('*').order('id',{ascending:true});
-        if(error) return sendJSON(res,500,{error:'Gagal baca: '+error.message});
-        return sendJSON(res,200,{drafts:data});
+        const PAGE = 1000;
+        let all = [], from = 0;
+        while(true){
+          const { data, error } = await supabase.from('drafts').select('*')
+            .order('id',{ascending:true}).range(from, from+PAGE-1);
+          if(error) return sendJSON(res,500,{error:'Gagal baca: '+error.message});
+          all = all.concat(data);
+          if(data.length < PAGE) break;
+          from += PAGE;
+        }
+        return sendJSON(res,200,{drafts:all});
       }catch(e){ return sendJSON(res,500,{error:'Gagal baca: '+e.message}); }
     }
 
@@ -291,9 +299,19 @@ const server = http.createServer((req, res)=>{
     if(req.url==='/serve-master'&&req.method==='POST'){
       if(!supabase) return sendJSON(res,500,{error:'Supabase belum dikonfigurasi'});
       try{
-        const { data, error } = await supabase.from('matches_master').select('*').order('id',{ascending:true});
-        if(error) return sendJSON(res,500,{error:'Gagal baca master: '+error.message});
-        return sendJSON(res,200,{matches:data});
+        // Supabase/PostgREST membatasi max 1000 baris per request secara default —
+        // paginate pakai .range() supaya semua baris (bisa >1000) ikut terambil.
+        const PAGE = 1000;
+        let all = [], from = 0;
+        while(true){
+          const { data, error } = await supabase.from('matches_master').select('*')
+            .order('id',{ascending:true}).range(from, from+PAGE-1);
+          if(error) return sendJSON(res,500,{error:'Gagal baca master: '+error.message});
+          all = all.concat(data);
+          if(data.length < PAGE) break;
+          from += PAGE;
+        }
+        return sendJSON(res,200,{matches:all});
       }catch(e){ return sendJSON(res,500,{error:'Gagal baca master: '+e.message}); }
     }
 
