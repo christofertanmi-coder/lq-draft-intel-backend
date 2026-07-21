@@ -170,30 +170,26 @@ const server = http.createServer((req, res)=>{
       return sendJSON(res,200,{ lastChange, hasChange: lastChange > clientLast, serverTime: Date.now() });
     }
 
-    // ── HERO IMAGES (tetap lokal — file gambar disajikan dari folder lokal) ──
+    // ── HERO IMAGES (Supabase Storage — public bucket, sama untuk PC & HP) ──
     if(req.url==='/list-heroes'&&req.method==='POST'){
-      const cfg=loadConfig(); const folder=cfg.heroFolder;
-      if(!folder) return sendJSON(res,200,{files:[],folder:null,error:'heroFolder belum dikonfigurasi'});
-      if(!fs.existsSync(folder)) return sendJSON(res,200,{files:[],folder,error:'Folder tidak ditemukan'});
+      if(!supabase) return sendJSON(res,500,{error:'Supabase belum dikonfigurasi'});
       try{
-        const files=fs.readdirSync(folder).filter(f=>/\.(png|jpg|jpeg|webp)$/i.test(f))
-          .map(f=>({name:f,path:path.join(folder,f)})).sort((a,b)=>a.name.localeCompare(b.name));
-        return sendJSON(res,200,{files,folder});
+        const { data, error } = await supabase.storage.from('hero-images').list('', { limit: 1000, sortBy: { column: 'name', order: 'asc' } });
+        if(error) return sendJSON(res,500,{error:'Gagal list hero images: '+error.message});
+        const files = (data||[])
+          .filter(f=>/\.(png|jpg|jpeg|webp)$/i.test(f.name))
+          .map(f=>({ name:f.name, url: supabase.storage.from('hero-images').getPublicUrl(f.name).data.publicUrl }));
+        return sendJSON(res,200,{files});
       }catch(e){ return sendJSON(res,500,{error:e.message}); }
     }
+    // /serve-hero dipertahankan untuk kompatibilitas mundur — cukup redirect ke public URL Supabase.
     if(req.url==='/serve-hero'&&req.method==='POST'){
-      if(!parsed.filePath) return sendJSON(res,400,{error:'filePath wajib'});
-      const cfg=loadConfig(); const folder=cfg.heroFolder;
-      const resolved=path.resolve(parsed.filePath);
-      const allowed=folder?path.resolve(folder):null;
-      if(!allowed||!resolved.startsWith(allowed)) return sendJSON(res,403,{error:'Akses di luar folder hero dilarang'});
-      try{
-        const ext=path.extname(resolved).toLowerCase();
-        const mime={'.png':'image/png','.jpg':'image/jpeg','.jpeg':'image/jpeg','.webp':'image/webp'}[ext]||'application/octet-stream';
-        const data=fs.readFileSync(resolved);
-        res.writeHead(200,{'Content-Type':mime,'Access-Control-Allow-Origin':'*','Cache-Control':'max-age=3600'});
-        return res.end(data);
-      }catch(e){ return sendJSON(res,404,{error:'Gambar tidak ditemukan: '+e.message}); }
+      if(!parsed.fileName && !parsed.filePath) return sendJSON(res,400,{error:'fileName wajib'});
+      if(!supabase) return sendJSON(res,500,{error:'Supabase belum dikonfigurasi'});
+      const name = parsed.fileName || path.basename(parsed.filePath);
+      const { data } = supabase.storage.from('hero-images').getPublicUrl(name);
+      res.writeHead(302, { Location: data.publicUrl, 'Access-Control-Allow-Origin':'*' });
+      return res.end();
     }
 
     // ── DRAFT: SAVE (Supabase) ──
