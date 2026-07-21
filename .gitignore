@@ -1,0 +1,10 @@
+.env
+node_modules/
+_backup_*/
+draft tim/
+hero_images/
+hero_images.csv
+*.csv
+node nim-proxy.js.txt
+__pycache__/
+*.pyc

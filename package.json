@@ -1,0 +1,15 @@
+{
+  "name": "lq-draft-intel-backend",
+  "version": "1.0.0",
+  "private": true,
+  "description": "LQ Draft Intel backend proxy + Supabase sync",
+  "main": "nim-proxy.js",
+  "scripts": {
+    "start": "node nim-proxy.js",
+    "orchestrate": "node orchestrator.js"
+  },
+  "dependencies": {
+    "@supabase/supabase-js": "^2.45.4",
+    "dotenv": "^16.4.5"
+  }
+}
