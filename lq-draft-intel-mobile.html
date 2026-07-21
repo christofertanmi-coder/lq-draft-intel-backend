@@ -267,8 +267,12 @@ main{ padding:0 14px; max-width:640px; margin:0 auto; }
 .role-picker-btn.current{ border-color:var(--gold); background:rgba(227,181,100,.1); }
 .role-picker-skip{ text-align:center; color:var(--mute); font-size:11.5px; padding:10px 0 2px; cursor:pointer; }
 
-.hero-grid{ display:grid; grid-template-columns:repeat(4, 1fr); gap:8px; overflow-y:auto; padding-top:4px; }
+.hero-grid{
+  display:flex; flex-wrap:wrap; gap:8px; padding-top:4px;
+  flex:1; min-height:0; overflow-y:auto; align-content:flex-start;
+}
 .hero-grid-item{
+  width:calc(25% - 6px); flex:0 0 auto;
   border:1px solid var(--border); border-radius:10px; background:var(--panel-2); text-align:center; cursor:pointer;
   overflow:hidden;
 }
