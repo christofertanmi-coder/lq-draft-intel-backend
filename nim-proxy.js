@@ -146,9 +146,23 @@ function forwardToNim(urlPath, method, apiKey, payload, res){
   req.end();
 }
 
+// ── STATIC: serve mobile page dari server yang sama (jadi 1 URL cukup dari HP) ──
+const MOBILE_HTML_PATH = path.join(__dirname, 'lq-draft-intel-mobile.html');
+function serveMobilePage(res){
+  try{
+    const html = fs.readFileSync(MOBILE_HTML_PATH, 'utf8');
+    res.writeHead(200, {'Content-Type':'text/html; charset=utf-8'});
+    res.end(html);
+  }catch(e){
+    res.writeHead(404, {'Content-Type':'text/plain'});
+    res.end('lq-draft-intel-mobile.html tidak ditemukan di server.');
+  }
+}
+
 // ── SERVER ─────────────────────────────────────────────────────
 const server = http.createServer((req, res)=>{
   if(req.method==='OPTIONS'){ res.writeHead(204,corsHeaders()); return res.end(); }
+  if(req.method==='GET' && (req.url==='/' || req.url==='/mobile')){ return serveMobilePage(res); }
 
   let body='';
   req.on('data',chunk=>body+=chunk);

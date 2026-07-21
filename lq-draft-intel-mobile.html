@@ -1,0 +1,1408 @@
+<!DOCTYPE html>
+<html lang="id">
+<head>
+<meta charset="UTF-8">
+<title>LQ DRAFT INTEL — Mobile</title>
+<meta name="viewport" content="width=device-width, initial-scale=1.0, maximum-scale=1.0, viewport-fit=cover">
+<meta name="theme-color" content="#07070B">
+<link rel="preconnect" href="https://fonts.googleapis.com">
+<link href="https://fonts.googleapis.com/css2?family=Rajdhani:wght@500;600;700&family=Inter:wght@400;500;600;700&family=JetBrains+Mono:wght@400;500;700&display=swap" rel="stylesheet">
+<style>
+:root{
+  --void:#07070B;
+  --panel:#14141D;
+  --panel-2:#1C1C28;
+  --border:#2A2A38;
+  --ink:#F5F1E8;
+  --mute:#8D8B98;
+  --gold-1:#F3CD82;
+  --gold-2:#B9822E;
+  --gold: #E3B564;
+  --blue:#4E93E9;
+  --red:#E1544B;
+  --green:#3ED98B;
+  --gold-grad: linear-gradient(135deg, var(--gold-1), var(--gold-2));
+  --safe-top: env(safe-area-inset-top, 0px);
+  --safe-bottom: env(safe-area-inset-bottom, 0px);
+}
+*{box-sizing:border-box; margin:0; padding:0; -webkit-tap-highlight-color:transparent;}
+html{background:var(--void);}
+body{
+  background:
+    radial-gradient(1200px 500px at 50% -120px, rgba(227,181,100,.08), transparent 60%),
+    var(--void);
+  color:var(--ink);
+  font-family:'Inter',sans-serif;
+  min-height:100vh;
+  padding-bottom:calc(40px + var(--safe-bottom));
+  -webkit-font-smoothing:antialiased;
+}
+.mono{font-family:'JetBrains Mono',monospace;}
+.display{font-family:'Rajdhani',sans-serif; font-weight:700; letter-spacing:.02em;}
+::-webkit-scrollbar{height:0; width:0;}
+
+/* ===== TOP BAR ===== */
+header.topbar{
+  padding:calc(14px + var(--safe-top)) 16px 12px;
+  display:flex; align-items:center; justify-content:space-between;
+  border-bottom:1px solid var(--border);
+}
+.brand{
+  font-family:'Rajdhani',sans-serif; font-weight:700; font-size:17px; letter-spacing:.05em;
+  display:flex; align-items:center; gap:8px;
+}
+.brand-dot{
+  width:8px; height:8px; border-radius:50%;
+  background:var(--gold-grad);
+  box-shadow:0 0 10px rgba(243,205,130,.7);
+}
+.icon-btn{
+  width:34px; height:34px; border-radius:10px; border:1px solid var(--border);
+  background:var(--panel); color:var(--mute); font-size:16px;
+  display:flex; align-items:center; justify-content:center; cursor:pointer;
+}
+.icon-btn:active{background:var(--panel-2);}
+
+/* ===== STICKY CONTROL GROUP ===== */
+.sticky-group{
+  position:sticky; top:0; z-index:40;
+  background:rgba(7,7,11,.92); backdrop-filter:blur(10px); -webkit-backdrop-filter:blur(10px);
+  border-bottom:1px solid var(--border);
+}
+.mode-switch{
+  display:flex; gap:6px; padding:10px 12px 0;
+}
+.mode-btn{
+  flex:1; padding:9px 8px; border-radius:10px 10px 0 0; border:1px solid var(--border); border-bottom:none;
+  background:var(--panel); color:var(--mute); font-family:'Rajdhani',sans-serif; font-weight:700; font-size:13px;
+  letter-spacing:.04em; text-transform:uppercase; cursor:pointer;
+}
+.mode-btn.active{
+  background:var(--panel-2); color:var(--gold); position:relative;
+}
+.mode-btn.active::after{
+  content:''; position:absolute; left:10%; right:10%; bottom:-1px; height:2px; background:var(--gold-grad);
+}
+
+.team-select-bar{ padding:10px 12px; }
+.team-select-pill{
+  width:100%; display:flex; align-items:center; justify-content:space-between; gap:10px;
+  background:var(--panel); border:1px solid var(--border); border-radius:12px;
+  padding:11px 14px; color:var(--ink); cursor:pointer;
+}
+.team-select-pill .label{
+  font-family:'Rajdhani',sans-serif; font-weight:700; font-size:15px; letter-spacing:.01em;
+  overflow:hidden; text-overflow:ellipsis; white-space:nowrap;
+}
+.team-select-pill .label.placeholder{ color:var(--mute); font-weight:600; }
+.team-select-pill .chev{ color:var(--gold); font-size:12px; flex:none; }
+
+.section-toc{
+  display:flex; gap:4px; overflow-x:auto; padding:0 12px 10px; scrollbar-width:none;
+}
+.section-toc a{
+  flex:none; font-family:'JetBrains Mono',monospace; font-size:10.5px; letter-spacing:.06em; text-transform:uppercase;
+  color:var(--mute); text-decoration:none; padding:7px 12px; border-radius:20px; border:1px solid transparent;
+  background:var(--panel); white-space:nowrap;
+}
+.section-toc a.active{
+  color:var(--gold); border-color:rgba(227,181,100,.4); background:rgba(227,181,100,.08);
+}
+
+/* ===== LAYOUT ===== */
+main{ padding:0 14px; max-width:640px; margin:0 auto; }
+.panel-section{ padding-top:22px; scroll-margin-top:150px; }
+.section-title{
+  font-family:'JetBrains Mono',monospace; font-size:11px; letter-spacing:.14em; text-transform:uppercase;
+  color:var(--gold); margin-bottom:10px; padding-bottom:8px; border-bottom:1px solid var(--border);
+}
+.empty-state{
+  margin-top:60px; text-align:center; color:var(--mute); font-size:13px; padding:0 20px; line-height:1.7;
+}
+.empty-state b{ color:var(--ink); }
+
+/* ===== STAT GRID ===== */
+.stat-grid{ display:grid; grid-template-columns:1fr 1fr; gap:10px; }
+.stat-card{
+  background:var(--panel); border:1px solid var(--border); border-radius:12px; padding:14px;
+}
+.stat-card.gold{ border-color:rgba(227,181,100,.35); background:linear-gradient(160deg, rgba(227,181,100,.08), var(--panel) 60%); }
+.stat-card.good{ border-color:rgba(62,217,139,.35); }
+.stat-card.warn{ border-color:rgba(225,84,75,.35); }
+.stat-label{ font-size:10.5px; color:var(--mute); text-transform:uppercase; letter-spacing:.06em; margin-bottom:6px; }
+.stat-value{ font-family:'Rajdhani',sans-serif; font-weight:700; font-size:26px; line-height:1; }
+.stat-card.gold .stat-value{
+  background:var(--gold-grad); -webkit-background-clip:text; background-clip:text; color:transparent;
+}
+.stat-sub{ font-size:10.5px; color:var(--mute); margin-top:4px; }
+.accuracy-warn{
+  background:rgba(227,181,100,.08); border:1px solid rgba(227,181,100,.3); border-radius:10px;
+  padding:10px 12px; font-size:11.5px; color:var(--gold-1); line-height:1.6; margin-bottom:14px; display:none;
+}
+
+/* ===== TABLES ===== */
+.data-table{ width:100%; border-collapse:collapse; }
+.data-table th{
+  text-align:left; font-size:9.5px; text-transform:uppercase; letter-spacing:.06em; color:var(--mute);
+  padding:0 6px 8px; font-weight:600;
+}
+.data-table td{ padding:9px 6px; border-top:1px solid var(--border); font-size:12.5px; vertical-align:middle; }
+.hero-cell{ display:flex; align-items:center; gap:8px; }
+.hero-icon{
+  width:28px; height:28px; border-radius:50%; object-fit:cover; flex:none; border:1px solid var(--border);
+}
+.hero-fallback{
+  width:28px; height:28px; border-radius:50%; background:var(--panel-2); display:flex; align-items:center;
+  justify-content:center; font-size:10px; font-weight:800; color:var(--gold); flex:none; border:1px solid var(--border);
+}
+.hero-name{ font-weight:600; font-size:12.5px; }
+.badge-priority{
+  display:inline-block; font-size:8.5px; font-weight:700; letter-spacing:.03em; color:#1A1206;
+  background:var(--gold-grad); border-radius:5px; padding:2px 6px; margin-left:6px; vertical-align:middle;
+}
+.wr-pill{ padding:3px 8px; border-radius:20px; font-family:'JetBrains Mono',monospace; font-size:11px; font-weight:700; }
+.bar-cell{ display:flex; align-items:center; gap:8px; }
+.bar-track{ flex:1; height:6px; border-radius:4px; background:var(--panel-2); overflow:hidden; }
+.bar-fill{ height:100%; border-radius:4px; }
+
+/* Performa per role */
+.role-row{ display:flex; gap:10px; align-items:flex-start; padding:12px 0; border-top:1px solid var(--border); }
+.role-row:first-child{ border-top:none; }
+.role-dot{ width:9px; height:9px; border-radius:50%; flex:none; margin-top:5px; }
+.role-name{ font-family:'Rajdhani',sans-serif; font-weight:700; font-size:14px; min-width:74px; }
+.role-heroes{ font-size:11.5px; color:var(--mute); line-height:1.9; flex:1; }
+.role-heroes b{ color:var(--ink); font-weight:600; }
+.role-count{ font-family:'JetBrains Mono',monospace; font-size:10.5px; color:var(--mute); min-width:26px; text-align:right; }
+
+/* ===== DRAFT TAPE (filmstrip signature) ===== */
+.tape-track{ display:flex; flex-direction:column; gap:14px; padding-bottom:6px; }
+.tape-frame{
+  position:relative; background:var(--panel); border:1px solid var(--border); border-radius:10px; padding:14px 16px 12px;
+  overflow:hidden;
+}
+.tape-frame::before, .tape-frame::after{
+  content:''; position:absolute; left:0; right:0; height:9px;
+  background-image:radial-gradient(circle, var(--void) 2.6px, transparent 2.7px);
+  background-size:16px 100%; background-repeat:repeat-x; background-position:6px center;
+  opacity:.9;
+}
+.tape-frame::before{ top:0; border-bottom:1px dashed var(--border); }
+.tape-frame::after{ bottom:0; border-top:1px dashed var(--border); }
+.tape-body{ padding:8px 2px 2px; }
+.tape-meta{ display:flex; align-items:center; justify-content:space-between; margin-bottom:10px; }
+.tape-opp{ font-family:'Rajdhani',sans-serif; font-weight:700; font-size:14.5px; }
+.tape-sub{ color:var(--mute); font-weight:500; font-size:10.5px; }
+.tape-result{
+  font-family:'JetBrains Mono',monospace; font-size:10px; font-weight:700; padding:3px 9px; border-radius:5px;
+  letter-spacing:.04em;
+}
+.tape-row{ display:flex; gap:8px; align-items:center; margin-top:7px; flex-wrap:wrap; }
+.tape-lbl{ font-size:8.5px; color:var(--mute); text-transform:uppercase; letter-spacing:.05em; min-width:56px; }
+.chip{
+  display:inline-flex; align-items:center; gap:5px; padding:3px 8px 3px 3px; border-radius:20px; font-size:11px;
+  border:1px solid var(--border); background:var(--panel-2);
+}
+.chip.pick-blue{ border-color:rgba(78,147,233,.5); }
+.chip.pick-red{ border-color:rgba(225,84,75,.5); }
+.chip.chip-ban{ opacity:.55; }
+.chip .hero-icon, .chip .hero-fallback{ width:18px; height:18px; font-size:8px; }
+.ban-icon-wrap{ position:relative; display:inline-flex; }
+.ban-icon-wrap img, .ban-icon-wrap .hero-fallback{ filter:grayscale(.6) brightness(.6); border-color:var(--red); }
+
+/* ===== MODAL / POPOUT ===== */
+.modal-overlay{
+  position:fixed; inset:0; background:rgba(4,4,7,.72); backdrop-filter:blur(2px); z-index:90; display:none;
+}
+.modal-card{
+  position:fixed; left:0; right:0; bottom:0; z-index:91; display:none; flex-direction:column;
+  background:var(--panel); border-top:1px solid var(--border); border-radius:18px 18px 0 0;
+  max-height:82vh; padding:16px 16px calc(16px + var(--safe-bottom));
+  box-shadow:0 -20px 60px rgba(0,0,0,.6);
+}
+.modal-card.open{ display:flex; }
+.modal-overlay.open{ display:block; }
+.modal-handle{ width:36px; height:4px; border-radius:3px; background:var(--border); margin:0 auto 12px; }
+.modal-header{ display:flex; align-items:center; justify-content:space-between; margin-bottom:12px; }
+.modal-title{ font-family:'Rajdhani',sans-serif; font-weight:700; font-size:16px; }
+.modal-close{
+  width:28px; height:28px; border-radius:8px; border:1px solid var(--border); background:var(--panel-2);
+  color:var(--mute); display:flex; align-items:center; justify-content:center; cursor:pointer; font-size:14px;
+}
+.search-input{
+  width:100%; background:var(--panel-2); border:1px solid var(--border); border-radius:10px; color:var(--ink);
+  padding:10px 12px; font-size:13px; font-family:'Inter',sans-serif;
+}
+.search-input:focus{ outline:none; border-color:var(--gold); }
+.filter-row{ display:flex; gap:8px; margin:10px 0; }
+.chip-toggle{
+  flex:1; text-align:center; padding:8px; border-radius:9px; border:1px solid var(--border); background:var(--panel-2);
+  color:var(--mute); font-size:11.5px; font-weight:600; cursor:pointer;
+}
+.chip-toggle.active{ color:var(--gold); border-color:rgba(227,181,100,.5); background:rgba(227,181,100,.08); }
+.picker-list{ overflow-y:auto; flex:1; }
+.team-row-item{
+  display:flex; align-items:center; gap:10px; padding:12px 6px; border-bottom:1px solid var(--border);
+  cursor:pointer;
+}
+.team-row-item:active{ background:var(--panel-2); }
+.team-row-item .star{ color:var(--border); font-size:16px; flex:none; }
+.team-row-item .star.starred{ color:var(--gold); }
+.team-row-item .tname{ font-size:13.5px; font-weight:600; flex:1; }
+.team-row-item .arrow{ color:var(--mute); font-size:12px; }
+
+.hero-grid{ display:grid; grid-template-columns:repeat(4, 1fr); gap:8px; overflow-y:auto; padding-top:4px; }
+.hero-grid-item{
+  border:1px solid var(--border); border-radius:10px; background:var(--panel-2); text-align:center; cursor:pointer;
+  overflow:hidden;
+}
+.hero-grid-item img, .hero-grid-item .hg-fallback{
+  width:100%; aspect-ratio:1; object-fit:cover; display:block; background:var(--void);
+}
+.hero-grid-item .hg-fallback{ display:flex; align-items:center; justify-content:center; font-size:15px; font-weight:800; color:var(--gold); }
+.hero-grid-item .hg-name{ font-size:9px; padding:4px 2px; white-space:nowrap; overflow:hidden; text-overflow:ellipsis; }
+
+/* ===== BUTTONS ===== */
+.btn{
+  font-family:'Rajdhani',sans-serif; font-weight:700; letter-spacing:.03em; font-size:13.5px;
+  padding:11px 18px; border-radius:10px; border:1px solid var(--border); background:var(--panel-2); color:var(--ink);
+  cursor:pointer; text-align:center;
+}
+.btn-gold{ background:var(--gold-grad); border:none; color:#1A1206; }
+.btn-block{ width:100%; display:block; }
+.btn:disabled{ opacity:.4; }
+.btn-row{ display:flex; gap:8px; }
+
+/* ===== DRAFT SIMULATOR ===== */
+.sim-setup-card{ background:var(--panel); border:1px solid var(--border); border-radius:14px; padding:16px; margin-top:16px; }
+.sim-team-pick-row{ display:flex; gap:10px; margin-bottom:12px; }
+.sim-team-slot{
+  flex:1; border:1px solid var(--border); border-radius:10px; padding:12px; text-align:center; cursor:pointer;
+  background:var(--panel-2);
+}
+.sim-team-slot.blue{ border-color:rgba(78,147,233,.4); }
+.sim-team-slot.red{ border-color:rgba(225,84,75,.4); }
+.sim-team-slot .lbl{ font-size:9.5px; color:var(--mute); text-transform:uppercase; letter-spacing:.05em; margin-bottom:4px; }
+.sim-team-slot .tname{ font-family:'Rajdhani',sans-serif; font-weight:700; font-size:13.5px; }
+.sim-team-slot .tname.empty{ color:var(--mute); }
+.field-row{ display:flex; gap:10px; align-items:center; margin-bottom:10px; }
+.field-row label{ font-size:11px; color:var(--mute); min-width:70px; }
+select.field, input.field{
+  flex:1; background:var(--panel-2); border:1px solid var(--border); border-radius:8px; color:var(--ink);
+  padding:9px 10px; font-size:13px; font-family:'JetBrains Mono',monospace;
+}
+input.field[type=number]{ text-align:center; }
+
+.sim-board-header{
+  display:flex; align-items:center; justify-content:center; gap:14px; padding:14px 0; margin-top:14px;
+}
+.sim-board-header .tname{ font-family:'Rajdhani',sans-serif; font-weight:700; font-size:15px; }
+.sim-board-header .tname.blue{ color:var(--blue); } .sim-board-header .tname.red{ color:var(--red); }
+.sim-score{ font-family:'JetBrains Mono',monospace; font-size:20px; font-weight:700; }
+.phase-bar{
+  text-align:center; font-size:12px; padding:10px; border-radius:9px; background:var(--panel-2);
+  border:1px solid var(--border); margin-bottom:12px;
+}
+.phase-block{ margin-bottom:14px; }
+.phase-block-title{ font-size:10px; color:var(--mute); text-transform:uppercase; letter-spacing:.08em; margin-bottom:6px; }
+.side-cards-row{ display:flex; gap:8px; overflow-x:auto; padding-bottom:4px; }
+.slot-card{
+  flex:none; width:60px; border-radius:8px; border:1px dashed var(--border); background:var(--panel-2);
+  display:flex; flex-direction:column; align-items:stretch; overflow:hidden; cursor:default;
+}
+.slot-card.filled{ border-style:solid; cursor:pointer; }
+.slot-card.active{
+  border-style:solid; border-color:var(--gold); box-shadow:0 0 12px rgba(227,181,100,.4); cursor:pointer;
+  animation:pulseGold 1.6s ease-in-out infinite;
+}
+@keyframes pulseGold{ 0%,100%{box-shadow:0 0 8px rgba(227,181,100,.25);} 50%{box-shadow:0 0 16px rgba(227,181,100,.6);} }
+.slot-card .sc-img{ width:100%; aspect-ratio:1; object-fit:cover; background:var(--void); }
+.slot-card .sc-fallback{ width:100%; aspect-ratio:1; display:flex; align-items:center; justify-content:center; background:var(--void); font-weight:800; color:var(--gold); font-size:14px; }
+.slot-card .sc-name{ font-size:7.5px; text-align:center; padding:2px 2px; white-space:nowrap; overflow:hidden; text-overflow:ellipsis; }
+.slot-card .sc-empty{ display:flex; flex-direction:column; align-items:center; justify-content:center; aspect-ratio:1; color:var(--mute); font-size:8px; text-align:center; padding:2px; gap:2px; }
+.slot-card.ban .sc-img, .slot-card.ban .sc-fallback{ filter:grayscale(.5) brightness(.6); position:relative; }
+.slot-card.ban.filled::after{ content:'✕'; position:absolute; }
+
+.suggestion-panel{
+  background:var(--panel); border:1px solid rgba(227,181,100,.3); border-radius:12px; padding:14px; margin-top:12px;
+  font-size:11.5px; line-height:1.7;
+}
+.suggestion-panel .sg-head{ font-weight:700; color:var(--gold); font-size:12px; margin-bottom:8px; }
+.suggestion-panel table{ width:100%; border-collapse:collapse; font-size:11px; }
+.suggestion-panel td{ padding:5px 4px; vertical-align:top; border-top:1px solid var(--border); }
+.suggestion-panel .role-tag{ font-weight:700; font-size:11.5px; }
+
+.result-card{ background:var(--panel); border:1px solid rgba(62,217,139,.35); border-radius:12px; padding:16px; margin-top:14px; }
+
+/* Riwayat draft */
+.draft-log-item{ background:var(--panel); border:1px solid var(--border); border-radius:10px; padding:12px 14px; margin-bottom:8px; cursor:pointer; }
+.draft-log-head{ display:flex; align-items:center; justify-content:space-between; }
+.draft-log-teams{ font-size:12.5px; font-weight:600; }
+.draft-log-teams .vb{color:var(--blue);} .draft-log-teams .vr{color:var(--red);}
+.draft-log-sub{ font-size:10px; color:var(--mute); margin-top:2px; }
+.draft-log-detail{ display:none; margin-top:10px; padding-top:10px; border-top:1px solid var(--border); }
+.draft-log-detail.open{ display:block; }
+
+.toast{
+  position:fixed; left:50%; bottom:calc(24px + var(--safe-bottom)); transform:translateX(-50%);
+  background:var(--panel-2); border:1px solid var(--border); border-radius:10px; padding:10px 18px; font-size:12.5px;
+  z-index:120; display:none; box-shadow:0 10px 30px rgba(0,0,0,.5);
+}
+.toast.show{ display:block; }
+.toast.err{ border-color:rgba(225,84,75,.5); color:#FFAFA8; }
+.toast.ok{ border-color:rgba(62,217,139,.5); color:#B7F5D6; }
+
+@media (prefers-color-scheme: light){
+  /* App is intentionally dark-only (broadcast-booth context) — no light variant. */
+}
+</style>
+</head>
+<body>
+
+<header class="topbar">
+  <div class="brand"><span class="brand-dot"></span>LQ DRAFT INTEL</div>
+  <button class="icon-btn" id="settingsBtn">⚙</button>
+</header>
+
+<div class="sticky-group">
+  <nav class="mode-switch" id="modeSwitch">
+    <button class="mode-btn active" data-mode="team">Analisa Tim</button>
+    <button class="mode-btn" data-mode="sim">Draft Simulator</button>
+  </nav>
+  <div class="team-select-bar" id="teamSelectBar">
+    <button class="team-select-pill" id="teamPickerBtn">
+      <span class="label placeholder" id="teamPickerLabel">Pilih Tim</span>
+      <span class="chev">▾</span>
+    </button>
+  </div>
+  <nav class="section-toc" id="sectionToc">
+    <a href="#sec-overview" data-target="sec-overview" class="active">Overview</a>
+    <a href="#sec-pick" data-target="sec-pick">Analisa Pick</a>
+    <a href="#sec-ban" data-target="sec-ban">Analisa Ban</a>
+    <a href="#sec-role" data-target="sec-role">Performa per Role</a>
+    <a href="#sec-tape" data-target="sec-tape">Draft Tape</a>
+  </nav>
+</div>
+
+<main>
+  <!-- ================= VIEW: ANALISA TIM ================= -->
+  <section id="view-team">
+    <div class="empty-state" id="emptyTeamState">
+      Pilih tim dulu dari tab di atas untuk melihat analisa.<br><br>
+      <b id="gamesLoadedLabel">Memuat data…</b>
+    </div>
+
+    <div id="teamContent" style="display:none;">
+      <div class="accuracy-warn" id="accuracyWarn"></div>
+
+      <section class="panel-section" id="sec-overview">
+        <div class="section-title">Overview</div>
+        <div class="stat-grid" id="statGrid"></div>
+      </section>
+
+      <section class="panel-section" id="sec-pick">
+        <div class="section-title">Analisa Pick</div>
+        <table class="data-table">
+          <thead><tr><th>Hero</th><th>Pick</th><th>W-L</th><th>WR</th></tr></thead>
+          <tbody id="pickTableBody"></tbody>
+        </table>
+      </section>
+
+      <section class="panel-section" id="sec-ban">
+        <div class="section-title">Analisa Ban</div>
+        <table class="data-table">
+          <thead><tr><th>Hero</th><th>Diban Tim Ini</th><th>Diban Lawan</th></tr></thead>
+          <tbody id="banTableBody"></tbody>
+        </table>
+      </section>
+
+      <section class="panel-section" id="sec-role">
+        <div class="section-title">Performa per Role</div>
+        <div id="roleList"></div>
+      </section>
+
+      <section class="panel-section" id="sec-tape" style="padding-bottom:30px;">
+        <div class="section-title">Draft Tape — Riwayat Game Terbaru</div>
+        <div class="tape-track" id="draftTape"></div>
+      </section>
+    </div>
+  </section>
+
+  <!-- ================= VIEW: DRAFT SIMULATOR ================= -->
+  <section id="view-sim" style="display:none; padding-bottom:30px;">
+    <div class="sim-setup-card" id="simSetupCard">
+      <div class="sim-team-pick-row">
+        <div class="sim-team-slot blue" id="simSlotA">
+          <div class="lbl">Blue</div>
+          <div class="tname empty" id="simNameA">Pilih Tim A</div>
+        </div>
+        <div class="sim-team-slot red" id="simSlotB">
+          <div class="lbl">Red</div>
+          <div class="tname empty" id="simNameB">Pilih Tim B</div>
+        </div>
+      </div>
+      <div class="field-row">
+        <label>Format</label>
+        <select class="field" id="simSeriesType">
+          <option value="bo1">Bo1</option>
+          <option value="bo3" selected>Bo3</option>
+          <option value="bo5">Bo5</option>
+          <option value="bo7">Bo7</option>
+        </select>
+      </div>
+      <div class="field-row" id="simScoreRow">
+        <label>Skor</label>
+        <input class="field" type="number" min="0" max="4" id="simScoreA" value="0">
+        <span class="mono" style="color:var(--mute);">—</span>
+        <input class="field" type="number" min="0" max="4" id="simScoreB" value="0">
+      </div>
+      <button class="btn btn-gold btn-block" id="simStartBtn">▶ Mulai Draft</button>
+    </div>
+
+    <div id="simBoardWrap" style="display:none;">
+      <div class="sim-board-header">
+        <span class="tname blue" id="simHeadA"></span>
+        <span class="sim-score" id="simScoreDisplay"></span>
+        <span class="tname red" id="simHeadB"></span>
+      </div>
+      <div class="phase-bar" id="simPhaseBar"></div>
+
+      <div class="phase-block"><div class="phase-block-title">Ban — Fase 1 · Blue</div><div class="side-cards-row" id="simBanP1Blue"></div></div>
+      <div class="phase-block"><div class="phase-block-title">Ban — Fase 1 · Red</div><div class="side-cards-row" id="simBanP1Red"></div></div>
+      <div class="phase-block"><div class="phase-block-title">Pick — Fase 1 · Blue</div><div class="side-cards-row" id="simPickP1Blue"></div></div>
+      <div class="phase-block"><div class="phase-block-title">Pick — Fase 1 · Red</div><div class="side-cards-row" id="simPickP1Red"></div></div>
+      <div class="phase-block"><div class="phase-block-title">Ban — Fase 2 · Red</div><div class="side-cards-row" id="simBanP2Red"></div></div>
+      <div class="phase-block"><div class="phase-block-title">Ban — Fase 2 · Blue</div><div class="side-cards-row" id="simBanP2Blue"></div></div>
+      <div class="phase-block"><div class="phase-block-title">Pick — Fase 2 · Red</div><div class="side-cards-row" id="simPickP2Red"></div></div>
+      <div class="phase-block"><div class="phase-block-title">Pick — Fase 2 · Blue</div><div class="side-cards-row" id="simPickP2Blue"></div></div>
+
+      <div class="suggestion-panel" id="simSuggestionBar"></div>
+
+      <div class="btn-row" style="margin-top:14px;">
+        <button class="btn" id="simUndoBtn" style="flex:1;">↺ Undo</button>
+        <button class="btn" id="simResetBtn" style="flex:1;">⟲ Reset</button>
+      </div>
+
+      <div class="result-card" id="simResultCard" style="display:none;">
+        <div class="section-title" style="border:none; padding:0; margin-bottom:10px;">✓ Draft Selesai</div>
+        <div class="field-row"><label>Menang</label>
+          <select class="field" id="simWinner"><option value="">— pilih —</option></select>
+        </div>
+        <div class="field-row"><label>Durasi</label>
+          <input class="field" type="text" placeholder="mm:ss" id="simDuration">
+        </div>
+        <button class="btn btn-gold btn-block" id="simSaveBtn">💾 Simpan Hasil</button>
+        <div id="simSaveStatus" style="font-size:11px; color:var(--mute); margin-top:8px; text-align:center;"></div>
+        <div id="simNextGameBox" style="display:none; margin-top:12px; text-align:center;">
+          <div id="simNextGameText" style="font-size:12.5px; margin-bottom:8px;"></div>
+          <button class="btn btn-block" id="simNextGameBtn">Lanjut ke Game Berikutnya</button>
+        </div>
+      </div>
+    </div>
+
+    <div class="panel-section" style="margin-top:22px;">
+      <div class="section-title">Riwayat Draft</div>
+      <button class="btn btn-block" id="loadDraftLogBtn" style="margin-bottom:12px;">Muat Riwayat</button>
+      <div id="simDraftLog"></div>
+    </div>
+  </section>
+</main>
+
+<!-- TEAM PICKER MODAL -->
+<div class="modal-overlay" id="teamPickerOverlay"></div>
+<div class="modal-card" id="teamPickerModal">
+  <div class="modal-handle"></div>
+  <div class="modal-header">
+    <span class="modal-title" id="teamPickerTitle">Pilih Tim</span>
+    <span class="modal-close" id="teamPickerClose">✕</span>
+  </div>
+  <input class="search-input" id="teamPickerSearch" placeholder="Cari nama tim...">
+  <div class="filter-row">
+    <div class="chip-toggle" id="teamShortlistToggle">⭐ Shortlist saja</div>
+  </div>
+  <div class="picker-list" id="teamPickerList"></div>
+</div>
+
+<!-- HERO PICKER MODAL -->
+<div class="modal-overlay" id="heroPickerOverlay"></div>
+<div class="modal-card" id="heroPickerModal" style="max-height:78vh;">
+  <div class="modal-handle"></div>
+  <div class="modal-header">
+    <span class="modal-title" id="heroPickerTitle">Pilih Hero</span>
+    <span class="modal-close" id="heroPickerClose">✕</span>
+  </div>
+  <input class="search-input" id="heroPickerSearch" placeholder="Cari hero...">
+  <div class="hero-grid" id="heroPickerGrid" style="margin-top:10px;"></div>
+</div>
+
+<!-- SETTINGS MODAL -->
+<div class="modal-overlay" id="settingsOverlay"></div>
+<div class="modal-card" id="settingsModal">
+  <div class="modal-handle"></div>
+  <div class="modal-header">
+    <span class="modal-title">Pengaturan</span>
+    <span class="modal-close" id="settingsClose">✕</span>
+  </div>
+  <div class="field-row" style="flex-direction:column; align-items:stretch; gap:6px;">
+    <label style="min-width:0;">Server URL</label>
+    <input class="field" style="text-align:left;" id="proxyUrlInput">
+  </div>
+  <div class="field-row" style="flex-direction:column; align-items:stretch; gap:6px; margin-top:10px;">
+    <label style="min-width:0;">API Token (buat simpan draft)</label>
+    <input class="field" style="text-align:left;" type="password" id="apiTokenInput">
+  </div>
+  <button class="btn btn-gold btn-block" id="settingsSaveBtn" style="margin-top:14px;">Simpan</button>
+</div>
+
+<div class="toast" id="toast"></div>
+
+<script>
+// ============================================================
+// CONFIG
+// ============================================================
+const DEFAULT_PROXY = 'https://lq-draft-intel-backend.onrender.com';
+function proxyBase(){ return (localStorage.getItem('lq_proxy_url')||DEFAULT_PROXY).replace(/\/$/,''); }
+function apiToken(){ return localStorage.getItem('lq_api_token')||''; }
+function authHeaders(){
+  const t = apiToken();
+  return t ? {'Content-Type':'application/json','X-Api-Token':t} : {'Content-Type':'application/json'};
+}
+function showToast(msg, kind){
+  const el = document.getElementById('toast');
+  el.textContent = msg;
+  el.className = 'toast show' + (kind?(' '+kind):'');
+  clearTimeout(showToast._t);
+  showToast._t = setTimeout(()=> el.classList.remove('show'), 2600);
+}
+
+// ============================================================
+// SHARED HELPERS (ported from lq-draft-intel-v2.html)
+// ============================================================
+function normKey(name){ return (name||'').toString().trim().toLowerCase().replace(/[^a-z0-9]/g,''); }
+function splitHeroes(s){ return (s||'').split(';').map(x=>x.trim()).filter(Boolean); }
+function timeToSec(t){
+  if(!t) return null;
+  const p = t.split(':').map(Number);
+  if(p.length!==2 || isNaN(p[0]) || isNaN(p[1])) return null;
+  return p[0]*60+p[1];
+}
+function parseMatchDate(str){
+  if(!str) return null;
+  const s = str.toString().trim();
+  const iso = s.match(/^(\d{4})-(\d{2})-(\d{2})/);
+  if(iso) return new Date(parseInt(iso[1]), parseInt(iso[2])-1, parseInt(iso[3]));
+  const mdy = s.match(/([A-Za-z]+)\s+(\d{1,2}),\s*(\d{4})/);
+  if(mdy){ const d = new Date(`${mdy[1]} ${mdy[2]}, ${mdy[3]}`); if(!isNaN(d.getTime())) return d; }
+  const dmy2 = s.match(/(\d{1,2})\s+([A-Za-z]+)\s+(\d{4})/);
+  if(dmy2){ const d = new Date(`${dmy2[2]} ${dmy2[1]}, ${dmy2[3]}`); if(!isNaN(d.getTime())) return d; }
+  return null;
+}
+function shortDateLabel(d){
+  if(!d) return '';
+  const months=['Jan','Feb','Mar','Apr','Mei','Jun','Jul','Agu','Sep','Okt','Nov','Des'];
+  return d.getDate()+' '+months[d.getMonth()];
+}
+
+const HERO_ROLE_RAW = {
+  Tank:['Tigreal','Akai','Franco','Minotaur','Lolita','Uranus','Hylos','Belerick','Khufra','Grock','Gatotkaca','Baxia','Atlas','Barats','Gloo','Edith','Minsitthar','Hilda'],
+  Fighter:['Alucard','Bane','Zilong','Freya','Sun','Alpha','Ruby','Aldous','Argus','Jawhead','Lapu-Lapu','Yu Zhong','Badang','Dyrroth','Terizla','Khaleed','Guinevere','Thamuz','Masha','Silvanna','Leomord','Paquito','Phoveus','Martis','Chou','X.Borg','Yin','Aulus','Fredrinn','Cici','Arlott','Roger','Sora','Lukas'],
+  Assassin:['Saber','Karina','Fanny','Hayabusa','Natalia','Helcurt','Lancelot','Ling','Hanzo','Gusion','Benedetta','Aamon','Joy','Suyou','Julian','Harley','Selena','Lesley','Hirara'],
+  Mage:['Eudora','Nana','Cyclops','Aurora','Alice','Vexana','Zhask','Lunox','Pharsa','Kagura','Chang\'e','Harith','Lylia','Cecilion','Luo Yi','Yve','Valentina','Xavier','Novaria','Vale','Faramis','Esmeralda','Kadita','Gord','Odette','Valir','Zetian','Zhuxin'],
+  Marksman:['Miya','Bruno','Clint','Layla','Moskov','Irithel','Karrie','Kimmy','Granger','Claude','Wanwan','Brody','Beatrix','Melissa','Natan','Ixia','Hanabi','Yi Sun-shin','Obsidia'],
+  Support:['Estes','Diggie','Rafaela','Angela','Mathilda','Floryn','Carmilla','Kaja','Kalea','Chip'],
+};
+const HERO_ROLE = {};
+Object.entries(HERO_ROLE_RAW).forEach(([role,list])=> list.forEach(h=> HERO_ROLE[normKey(h)] = role));
+const POSITION_ROLE_COLOR = {EXP:'#e67e22',Jungle:'#27ae60',Mid:'#8e44ad',Gold:'#f1c40f',Support:'#2980b9'};
+const SIM_ROLES = ['EXP','Jungle','Mid','Gold','Support'];
+const ARCHETYPE_TO_SLOT = {'Marksman':'Gold','Tank':'Support','Assassin':'Jungle','Mage':'Mid','Fighter':'EXP','Support':'Support'};
+
+let heroImageURL = new Map(); // normKey -> public url
+
+function heroIconHTML(heroName){
+  const url = heroImageURL.get(normKey(heroName));
+  if(url) return `<img class="hero-icon" src="${url}" alt="${heroName}" loading="lazy">`;
+  const initials = (heroName||'?').split(/[\s-]/).map(w=>w[0]).join('').slice(0,2).toUpperCase();
+  return `<div class="hero-fallback">${initials}</div>`;
+}
+function banIconHTML(heroName){
+  return `<span class="ban-icon-wrap">${heroIconHTML(heroName)}</span>`;
+}
+
+function normalizeRow(m){
+  let dateObj = null, dateISO = '';
+  if(m.DateISO){ dateObj = parseMatchDate(m.DateISO); dateISO = m.DateISO; }
+  else { dateObj = parseMatchDate(m.Date); dateISO = dateObj ? (dateObj.getFullYear()+'-'+String(dateObj.getMonth()+1).padStart(2,'0')+'-'+String(dateObj.getDate()).padStart(2,'0')) : ''; }
+  let winner = m.Winner||'';
+  const resA = (m.ResultA||'').toUpperCase(), resB = (m.ResultB||'').toUpperCase();
+  if(!winner && resA==='W') winner = m.TeamA;
+  if(!winner && resB==='W') winner = m.TeamB;
+  return {
+    Week:m.Week||'', Day:m.Day||'', Game:m.Game||'',
+    Date:m.Date||'', DateObj:dateObj, DateISO:dateISO,
+    TeamA:m.TeamA||'', TeamB:m.TeamB||'',
+    Winner:winner, Time:m.Time||'',
+    ResultA:resA, ResultB:resB,
+    BluePicks:m.BluePicks||'', RedPicks:m.RedPicks||'',
+    BlueBans:m.BlueBans||'', RedBans:m.RedBans||'',
+  };
+}
+
+// ============================================================
+// DATA LAYER
+// ============================================================
+let allRows = [];
+let allTeams = [];
+let _teamStatsCache = {};
+
+function invalidateStatsCache(){ _teamStatsCache = {}; _globalHeroStatsCache = null; }
+
+async function loadMasterData(){
+  try{
+    const res = await fetch(proxyBase()+'/serve-master', {method:'POST', headers:{'Content-Type':'application/json'}, body:'{}'});
+    const data = await res.json();
+    const matches = data.matches || [];
+    allRows = matches.map(m=>normalizeRow({
+      Week:m.week, Day:m.day, Game:m.game, Date:m.date, DateISO:m.date_iso,
+      TeamA:m.team_a, TeamB:m.team_b, Winner:m.winner, Time:m.time,
+      ResultA:m.result_a, ResultB:m.result_b,
+      BluePicks:m.blue_picks, RedPicks:m.red_picks, BlueBans:m.blue_bans, RedBans:m.red_bans,
+    }));
+    const teamSet = new Set();
+    allRows.forEach(r=>{ if(r.TeamA) teamSet.add(r.TeamA); if(r.TeamB) teamSet.add(r.TeamB); });
+    allTeams = [...teamSet].sort();
+    invalidateStatsCache();
+    document.getElementById('gamesLoadedLabel').textContent = `${allRows.length} game dimuat.`;
+  }catch(e){
+    document.getElementById('gamesLoadedLabel').textContent = 'Gagal memuat data — cek koneksi server di ⚙ Pengaturan.';
+    showToast('Gagal memuat data: '+e.message, 'err');
+  }
+}
+
+async function loadHeroImages(){
+  try{
+    const res = await fetch(proxyBase()+'/list-heroes', {method:'POST', headers:{'Content-Type':'application/json'}, body:'{}'});
+    const data = await res.json();
+    (data.files||[]).forEach(f=>{
+      let base = f.name.replace(/\.(png|jpg|jpeg|webp)$/i,'').replace(/^[0-9]+[_\-\s]*/,'');
+      heroImageURL.set(normKey(base), f.url);
+    });
+  }catch(e){ /* fallback ke inisial huruf */ }
+}
+
+// ============================================================
+// TEAM STATS (ported from computeTeamStats/_computeTeamStatsRaw)
+// ============================================================
+function computeTeamStats(team){
+  if(_teamStatsCache[team]) return _teamStatsCache[team];
+  const heroGames={}, picks={}, bansBy={}, bansAgainst={};
+  const detail=[];
+  let durWin=[], durLoss=[];
+  let games=0, wins=0, gamesWithPerGameData=0;
+  const sideGames={Blue:{win:0,loss:0}, Red:{win:0,loss:0}};
+  const POSITION_ROLES=['EXP','Jungle','Mid','Gold','Support'];
+  const positionalRoleStats={}, positionalHeroByRole={};
+  const oppBanPositionStats={};
+
+  allRows.forEach(r=>{
+    const isBlue = r.TeamA===team, isRed = r.TeamB===team;
+    if(!isBlue && !isRed) return;
+    games++;
+    const hasPerGameResult = r.ResultA==='W'||r.ResultA==='L'||r.ResultB==='W'||r.ResultB==='L';
+    const win = hasPerGameResult ? (isBlue? r.ResultA==='W' : r.ResultB==='W') : (r.Winner===team);
+    if(win) wins++;
+    if(hasPerGameResult) gamesWithPerGameData++;
+    const side = isBlue?'Blue':'Red';
+    sideGames[side][win?'win':'loss']++;
+    const opp = isBlue? r.TeamB : r.TeamA;
+    const myPicks = splitHeroes(isBlue? r.BluePicks : r.RedPicks);
+    const myBans  = splitHeroes(isBlue? r.BlueBans  : r.RedBans);
+    const oppPicks = splitHeroes(isBlue? r.RedPicks : r.BluePicks);
+    const oppBans  = splitHeroes(isBlue? r.RedBans  : r.BlueBans);
+    myPicks.forEach(h=>{
+      picks[h]=(picks[h]||0)+1;
+      if(!heroGames[h]) heroGames[h]={win:0,loss:0};
+      heroGames[h][win?'win':'loss']++;
+    });
+    myBans.forEach(h=> bansBy[h]=(bansBy[h]||0)+1);
+    oppBans.forEach(h=> bansAgainst[h]=(bansAgainst[h]||0)+1);
+    oppBans.forEach((h,idx)=>{
+      if(!oppBanPositionStats[h]) oppBanPositionStats[h]={sum:0,count:0};
+      oppBanPositionStats[h].sum+=idx; oppBanPositionStats[h].count++;
+    });
+    if(myPicks.length===5){
+      myPicks.forEach((h,idx)=>{
+        const role = POSITION_ROLES[idx];
+        if(!positionalRoleStats[role]) positionalRoleStats[role]={win:0,loss:0,picks:0};
+        positionalRoleStats[role][win?'win':'loss']++;
+        positionalRoleStats[role].picks++;
+        if(!positionalHeroByRole[role]) positionalHeroByRole[role]={};
+        if(!positionalHeroByRole[role][h]) positionalHeroByRole[role][h]={win:0,loss:0};
+        positionalHeroByRole[role][h][win?'win':'loss']++;
+      });
+    }
+    const sec = timeToSec(r.Time);
+    if(sec!==null){ if(win) durWin.push(sec); else durLoss.push(sec); }
+    detail.push({week:r.Week, day:r.Day, date:r.Date, dateObj:r.DateObj, game:r.Game, opp, side, win, time:r.Time, myPicks, myBans, oppPicks, oppBans});
+  });
+
+  const wr = games? Math.round(wins/games*1000)/10 : 0;
+  const blueTot = sideGames.Blue.win+sideGames.Blue.loss;
+  const redTot  = sideGames.Red.win+sideGames.Red.loss;
+  const blueWR = blueTot? Math.round(sideGames.Blue.win/blueTot*1000)/10 : null;
+  const redWR  = redTot?  Math.round(sideGames.Red.win/redTot*1000)/10   : null;
+  const avg = arr=> arr.length? Math.round(arr.reduce((a,b)=>a+b,0)/arr.length) : null;
+
+  const result = { team, games, wins, wr, blueWR, redWR, blueTot, redTot, picks, heroGames, bansBy, bansAgainst,
+    detail, avgWinDur:avg(durWin), avgLossDur:avg(durLoss), gamesWithPerGameData,
+    positionalRoleStats, positionalHeroByRole, oppBanPositionStats };
+  _teamStatsCache[team] = result;
+  return result;
+}
+
+let _globalHeroStatsCache = null;
+function computeGlobalHeroStats(){
+  if(_globalHeroStatsCache) return _globalHeroStatsCache;
+  const heroStats={}, heroPosStats={};
+  const SLOT_ROLES=['EXP','Jungle','Mid','Gold','Support'];
+  allRows.forEach(r=>{
+    const bp=splitHeroes(r.BluePicks), rp=splitHeroes(r.RedPicks);
+    const bb=splitHeroes(r.BlueBans), rb=splitHeroes(r.RedBans);
+    const blueWon = r.Winner===r.TeamA;
+    bp.forEach((h,i)=>{
+      if(!heroStats[h]) heroStats[h]={picks:0,wins:0,losses:0,bans:0};
+      heroStats[h].picks++; blueWon?heroStats[h].wins++:heroStats[h].losses++;
+      if(i<5){ if(!heroPosStats[h]) heroPosStats[h]={EXP:0,Jungle:0,Mid:0,Gold:0,Support:0}; heroPosStats[h][SLOT_ROLES[i]]++; }
+    });
+    rp.forEach((h,i)=>{
+      if(!heroStats[h]) heroStats[h]={picks:0,wins:0,losses:0,bans:0};
+      heroStats[h].picks++; blueWon?heroStats[h].losses++:heroStats[h].wins++;
+      if(i<5){ if(!heroPosStats[h]) heroPosStats[h]={EXP:0,Jungle:0,Mid:0,Gold:0,Support:0}; heroPosStats[h][SLOT_ROLES[i]]++; }
+    });
+    [...bb,...rb].forEach(h=>{ if(!heroStats[h]) heroStats[h]={picks:0,wins:0,losses:0,bans:0}; heroStats[h].bans++; });
+  });
+  _globalHeroStatsCache = { heroStats, heroPosStats, totalGames: allRows.length };
+  return _globalHeroStatsCache;
+}
+
+// ============================================================
+// RENDER: ANALISA TIM
+// ============================================================
+let currentTeam = null;
+
+function renderTeamAnalysis(team){
+  currentTeam = team;
+  document.getElementById('emptyTeamState').style.display = 'none';
+  document.getElementById('teamContent').style.display = 'block';
+  const s = computeTeamStats(team);
+  const fmtSec = sec => sec===null ? '—' : Math.floor(sec/60)+':'+String(sec%60).padStart(2,'0');
+
+  const warnEl = document.getElementById('accuracyWarn');
+  if(s.games===0 || s.gamesWithPerGameData===s.games){ warnEl.style.display='none'; }
+  else {
+    warnEl.style.display='block';
+    warnEl.textContent = `${s.gamesWithPerGameData} dari ${s.games} game pakai hasil per-game akurat, sisanya mengandalkan pemenang per seri.`;
+  }
+
+  document.getElementById('statGrid').innerHTML = `
+    <div class="stat-card"><div class="stat-label">Total Game</div><div class="stat-value">${s.games}</div><div class="stat-sub">${s.wins}W – ${s.games-s.wins}L</div></div>
+    <div class="stat-card ${s.wr>=50?'good':s.wr<35?'warn':''}"><div class="stat-label">Win Rate</div><div class="stat-value">${s.wr}%</div><div class="stat-sub">keseluruhan</div></div>
+    <div class="stat-card"><div class="stat-label">WR Blue Side</div><div class="stat-value">${s.blueWR===null?'—':s.blueWR+'%'}</div><div class="stat-sub">${s.blueTot} game</div></div>
+    <div class="stat-card"><div class="stat-label">WR Red Side</div><div class="stat-value">${s.redWR===null?'—':s.redWR+'%'}</div><div class="stat-sub">${s.redTot} game</div></div>
+    <div class="stat-card gold"><div class="stat-label">Avg Durasi Menang</div><div class="stat-value mono">${fmtSec(s.avgWinDur)}</div></div>
+    <div class="stat-card"><div class="stat-label">Avg Durasi Kalah</div><div class="stat-value mono">${fmtSec(s.avgLossDur)}</div></div>
+  `;
+
+  const pickRows = Object.entries(s.picks).sort((a,b)=>b[1]-a[1]).slice(0,15);
+  document.getElementById('pickTableBody').innerHTML = pickRows.map(([h,c])=>{
+    const hg = s.heroGames[h]||{win:0,loss:0};
+    const tot = hg.win+hg.loss;
+    const hwr = tot? Math.round(hg.win/tot*1000)/10 : 0;
+    const color = hwr>=50?'var(--green)':hwr>=35?'var(--gold)':'var(--red)';
+    const isPriority = (c/s.games)>=0.6;
+    return `<tr><td><div class="hero-cell">${heroIconHTML(h)}<span class="hero-name">${h}${isPriority?'<span class="badge-priority">PRIORITAS</span>':''}</span></div></td>
+      <td class="mono">${c}</td><td class="mono">${hg.win}-${hg.loss}</td>
+      <td><span class="wr-pill" style="background:${color}22; color:${color};">${hwr}%</span></td></tr>`;
+  }).join('') || `<tr><td colspan="4" style="color:var(--mute);">Belum ada data pick.</td></tr>`;
+
+  const allBanHeroes = new Set([...Object.keys(s.bansBy), ...Object.keys(s.bansAgainst)]);
+  const banRows = [...allBanHeroes].map(h=>({h, by:s.bansBy[h]||0, against:s.bansAgainst[h]||0}))
+    .sort((a,b)=>(b.by+b.against)-(a.by+a.against)).slice(0,15);
+  const maxBan = Math.max(...banRows.map(r=>Math.max(r.by,r.against)), 1);
+  document.getElementById('banTableBody').innerHTML = banRows.map(r=>`
+    <tr><td><div class="hero-cell">${heroIconHTML(r.h)}<span class="hero-name">${r.h}</span></div></td>
+    <td><div class="bar-cell"><span class="mono" style="width:16px;font-size:11px;">${r.by}</span><div class="bar-track"><div class="bar-fill" style="width:${r.by/maxBan*100}%; background:var(--blue);"></div></div></div></td>
+    <td><div class="bar-cell"><span class="mono" style="width:16px;font-size:11px;">${r.against}</span><div class="bar-track"><div class="bar-fill" style="width:${r.against/maxBan*100}%; background:var(--red);"></div></div></div></td>
+    </tr>`).join('') || `<tr><td colspan="3" style="color:var(--mute);">Belum ada data ban.</td></tr>`;
+
+  document.getElementById('roleList').innerHTML = SIM_ROLES.map(role=>{
+    const v = s.positionalRoleStats[role];
+    const color = POSITION_ROLE_COLOR[role];
+    if(!v || v.picks===0) return `<div class="role-row"><span class="role-dot" style="background:${color};"></span><span class="role-name">${role}</span><span class="role-heroes" style="color:var(--mute);">Belum ada data</span></div>`;
+    const heroList = Object.entries(s.positionalHeroByRole[role]||{}).sort((a,b)=>(b[1].win+b[1].loss)-(a[1].win+a[1].loss)).slice(0,6)
+      .map(([h,hv])=>{ const tot=hv.win+hv.loss; const hwr=tot?Math.round(hv.win/tot*1000)/10:0; const hc=hwr>=50?'var(--green)':hwr>=35?'var(--gold)':'var(--red)'; return `<b>${h}</b> <span style="color:${hc};">${tot}x/${hwr}%</span>`; }).join(', ');
+    return `<div class="role-row"><span class="role-dot" style="background:${color};"></span><span class="role-name">${role}</span><span class="role-heroes">${heroList}</span><span class="role-count">${v.picks}x</span></div>`;
+  }).join('');
+
+  let tapeSource = [...s.detail];
+  if(tapeSource.every(g=>g.dateObj)) tapeSource.sort((a,b)=> a.dateObj - b.dateObj);
+  const tape = tapeSource.slice(-10).reverse();
+  document.getElementById('draftTape').innerHTML = tape.length ? tape.map(g=>{
+    const resColor = g.win?'var(--green)':'var(--red)';
+    const resBg = g.win?'rgba(62,217,139,.15)':'rgba(225,84,75,.15)';
+    const renderChips = (arr, cls, isBan) => arr.map(h=>`<span class="chip ${cls}${isBan?' chip-ban':''}">${isBan?banIconHTML(h):heroIconHTML(h)} ${h}</span>`).join('');
+    return `<div class="tape-frame"><div class="tape-body">
+      <div class="tape-meta">
+        <div><span class="tape-opp">vs ${g.opp}</span><div class="tape-sub">${g.dateObj?shortDateLabel(g.dateObj):(g.week+' '+g.day)} · ${g.game||'-'} · ${g.time||'—'}</div></div>
+        <span class="tape-result" style="color:${resColor}; background:${resBg};">${g.win?'WIN':'LOSE'}</span>
+      </div>
+      <div class="tape-row"><span class="tape-lbl">Pick</span>${renderChips(g.myPicks, g.side==='Blue'?'pick-blue':'pick-red', false)}</div>
+      <div class="tape-row"><span class="tape-lbl">Ban</span>${renderChips(g.myBans, '', true)}</div>
+      <div class="tape-row"><span class="tape-lbl">Lawan</span>${renderChips(g.oppPicks, g.side==='Blue'?'pick-red':'pick-blue', false)}</div>
+      <div class="tape-row"><span class="tape-lbl">Ban Lawan</span>${renderChips(g.oppBans, '', true)}</div>
+    </div></div>`;
+  }).join('') : `<div style="color:var(--mute); font-size:12.5px;">Belum ada riwayat game untuk tim ini.</div>`;
+}
+
+// ============================================================
+// TEAM PICKER (popout, search + shortlist)
+// ============================================================
+let shortlist = new Set(JSON.parse(localStorage.getItem('lqDraftIntelShortlist')||'[]'));
+function saveShortlist(){ localStorage.setItem('lqDraftIntelShortlist', JSON.stringify([...shortlist])); }
+let teamPickerFilterText = '';
+let teamPickerShortlistOnly = false;
+let teamPickerOnSelect = null;
+let teamPickerExclude = null;
+
+function openTeamPicker(title, excludeTeam, onSelect){
+  teamPickerOnSelect = onSelect;
+  teamPickerExclude = excludeTeam || null;
+  document.getElementById('teamPickerTitle').textContent = title;
+  document.getElementById('teamPickerSearch').value = '';
+  teamPickerFilterText = '';
+  renderTeamPickerList();
+  document.getElementById('teamPickerOverlay').classList.add('open');
+  document.getElementById('teamPickerModal').classList.add('open');
+}
+function closeTeamPicker(){
+  document.getElementById('teamPickerOverlay').classList.remove('open');
+  document.getElementById('teamPickerModal').classList.remove('open');
+}
+function renderTeamPickerList(){
+  let list = [...allTeams];
+  if(teamPickerShortlistOnly) list = list.filter(t=>shortlist.has(t));
+  if(teamPickerFilterText) list = list.filter(t=>t.toLowerCase().includes(teamPickerFilterText));
+  if(teamPickerExclude) list = list.filter(t=>t!==teamPickerExclude);
+  const el = document.getElementById('teamPickerList');
+  el.innerHTML = list.length ? list.map(t=>{
+    const escaped = t.replace(/'/g,"\\'");
+    return `<div class="team-row-item" data-team="${t.replace(/"/g,'&quot;')}">
+      <span class="star ${shortlist.has(t)?'starred':''}" data-star="${t.replace(/"/g,'&quot;')}">★</span>
+      <span class="tname">${t}</span><span class="arrow">›</span>
+    </div>`;
+  }).join('') : `<div style="color:var(--mute); font-size:12.5px; padding:20px 4px; text-align:center;">Tidak ada tim yang cocok.</div>`;
+  el.querySelectorAll('.star').forEach(s=> s.addEventListener('click', e=>{
+    e.stopPropagation();
+    const t = s.dataset.star;
+    if(shortlist.has(t)) shortlist.delete(t); else shortlist.add(t);
+    saveShortlist(); renderTeamPickerList();
+  }));
+  el.querySelectorAll('.team-row-item').forEach(row=> row.addEventListener('click', ()=>{
+    const t = row.dataset.team;
+    closeTeamPicker();
+    if(teamPickerOnSelect) teamPickerOnSelect(t);
+  }));
+}
+document.getElementById('teamPickerSearch').addEventListener('input', function(){
+  teamPickerFilterText = this.value.trim().toLowerCase();
+  renderTeamPickerList();
+});
+document.getElementById('teamShortlistToggle').addEventListener('click', function(){
+  teamPickerShortlistOnly = !teamPickerShortlistOnly;
+  this.classList.toggle('active', teamPickerShortlistOnly);
+  renderTeamPickerList();
+});
+document.getElementById('teamPickerClose').addEventListener('click', closeTeamPicker);
+document.getElementById('teamPickerOverlay').addEventListener('click', (e)=>{ if(e.target.id==='teamPickerOverlay') closeTeamPicker(); });
+
+document.getElementById('teamPickerBtn').addEventListener('click', ()=>{
+  openTeamPicker('Pilih Tim', null, (team)=>{
+    document.getElementById('teamPickerLabel').textContent = team;
+    document.getElementById('teamPickerLabel').classList.remove('placeholder');
+    renderTeamAnalysis(team);
+  });
+});
+
+// ============================================================
+// MODE SWITCH
+// ============================================================
+document.getElementById('modeSwitch').addEventListener('click', (e)=>{
+  const btn = e.target.closest('.mode-btn');
+  if(!btn) return;
+  document.querySelectorAll('.mode-btn').forEach(b=>b.classList.remove('active'));
+  btn.classList.add('active');
+  const mode = btn.dataset.mode;
+  document.getElementById('view-team').style.display = mode==='team' ? 'block' : 'none';
+  document.getElementById('view-sim').style.display = mode==='sim' ? 'block' : 'none';
+  document.getElementById('teamSelectBar').style.display = mode==='team' ? 'block' : 'none';
+  document.getElementById('sectionToc').style.display = mode==='team' ? 'flex' : 'none';
+});
+
+// ============================================================
+// SECTION TOC (scroll spy)
+// ============================================================
+(function(){
+  const links = [...document.querySelectorAll('#sectionToc a')];
+  links.forEach(a=> a.addEventListener('click', (e)=>{
+    e.preventDefault();
+    const target = document.getElementById(a.dataset.target);
+    if(target) target.scrollIntoView({behavior:'smooth', block:'start'});
+  }));
+  const io = new IntersectionObserver((entries)=>{
+    entries.forEach(entry=>{
+      if(entry.isIntersecting){
+        links.forEach(a=>a.classList.remove('active'));
+        const link = links.find(a=>a.dataset.target===entry.target.id);
+        if(link) link.classList.add('active');
+      }
+    });
+  }, {rootMargin:'-160px 0px -70% 0px'});
+  document.querySelectorAll('.panel-section').forEach(sec=> io.observe(sec));
+})();
+
+// ============================================================
+// DRAFT SIMULATOR
+// ============================================================
+const DRAFT_SEQUENCE = [
+  {step:1,  side:'B', type:'ban',  phase:1, label:'Blue Ban 1'},
+  {step:2,  side:'R', type:'ban',  phase:1, label:'Red Ban 1'},
+  {step:3,  side:'B', type:'ban',  phase:1, label:'Blue Ban 2'},
+  {step:4,  side:'R', type:'ban',  phase:1, label:'Red Ban 2'},
+  {step:5,  side:'B', type:'ban',  phase:1, label:'Blue Ban 3'},
+  {step:6,  side:'R', type:'ban',  phase:1, label:'Red Ban 3'},
+  {step:7,  side:'B', type:'pick', phase:1, label:'Blue Pick 1'},
+  {step:8,  side:'R', type:'pick', phase:1, label:'Red Pick 1'},
+  {step:9,  side:'R', type:'pick', phase:1, label:'Red Pick 2'},
+  {step:10, side:'B', type:'pick', phase:1, label:'Blue Pick 2'},
+  {step:11, side:'B', type:'pick', phase:1, label:'Blue Pick 3'},
+  {step:12, side:'R', type:'pick', phase:1, label:'Red Pick 3'},
+  {step:13, side:'R', type:'ban',  phase:2, label:'Red Ban 4'},
+  {step:14, side:'B', type:'ban',  phase:2, label:'Blue Ban 4'},
+  {step:15, side:'R', type:'ban',  phase:2, label:'Red Ban 5'},
+  {step:16, side:'B', type:'ban',  phase:2, label:'Blue Ban 5'},
+  {step:17, side:'R', type:'pick', phase:2, label:'Red Pick 4'},
+  {step:18, side:'B', type:'pick', phase:2, label:'Blue Pick 4'},
+  {step:19, side:'B', type:'pick', phase:2, label:'Blue Pick 5'},
+  {step:20, side:'R', type:'pick', phase:2, label:'Red Pick 5'},
+];
+
+let simState = { teamA:null, teamB:null, scoreA:0, scoreB:0, seriesType:'bo3', currentStep:0, slots:{}, roleAssign:{} };
+
+function simGetNeededToWin(t){ return {bo1:1,bo3:2,bo5:3,bo7:4}[t] || 2; }
+function simDone(){ return simState.currentStep >= 20; }
+
+function simUpdateSlotUI(){
+  document.getElementById('simNameA').textContent = simState.teamA || 'Pilih Tim A';
+  document.getElementById('simNameA').classList.toggle('empty', !simState.teamA);
+  document.getElementById('simNameB').textContent = simState.teamB || 'Pilih Tim B';
+  document.getElementById('simNameB').classList.toggle('empty', !simState.teamB);
+}
+document.getElementById('simSlotA').addEventListener('click', ()=>{
+  openTeamPicker('Pilih Tim Blue', simState.teamB, (t)=>{ simState.teamA=t; simUpdateSlotUI(); });
+});
+document.getElementById('simSlotB').addEventListener('click', ()=>{
+  openTeamPicker('Pilih Tim Red', simState.teamA, (t)=>{ simState.teamB=t; simUpdateSlotUI(); });
+});
+document.getElementById('simSeriesType').addEventListener('change', function(){
+  document.getElementById('simScoreRow').style.display = this.value==='bo1' ? 'none' : 'flex';
+  document.getElementById('simScoreA').value = 0;
+  document.getElementById('simScoreB').value = 0;
+});
+
+document.getElementById('simStartBtn').addEventListener('click', ()=>{
+  if(!simState.teamA || !simState.teamB){ showToast('Pilih Tim Blue dan Red dulu.', 'err'); return; }
+  if(simState.teamA===simState.teamB){ showToast('Kedua tim tidak boleh sama.', 'err'); return; }
+  simState.scoreA = parseInt(document.getElementById('simScoreA').value)||0;
+  simState.scoreB = parseInt(document.getElementById('simScoreB').value)||0;
+  simState.seriesType = document.getElementById('simSeriesType').value;
+  if(simState.seriesType==='bo1'){ simState.scoreA=0; simState.scoreB=0; }
+  simState.currentStep=0; simState.slots={}; simState.roleAssign={};
+  document.getElementById('simHeadA').textContent = simState.teamA;
+  document.getElementById('simHeadB').textContent = simState.teamB;
+  const scoreEl = document.getElementById('simScoreDisplay');
+  scoreEl.innerHTML = simState.seriesType==='bo1'
+    ? `<span style="color:var(--gold);">BO1</span>`
+    : `<span style="color:var(--blue);">${simState.scoreA}</span> <span style="color:var(--mute); font-size:14px;">—</span> <span style="color:var(--red);">${simState.scoreB}</span>`;
+  document.getElementById('simResultCard').style.display='none';
+  document.getElementById('simNextGameBox').style.display='none';
+  document.getElementById('simSaveStatus').textContent='';
+  document.getElementById('simBoardWrap').style.display='block';
+  simRenderBoard();
+  document.getElementById('simBoardWrap').scrollIntoView({behavior:'smooth', block:'start'});
+});
+document.getElementById('simResetBtn').addEventListener('click', ()=>{
+  simState = { teamA:null, teamB:null, scoreA:0, scoreB:0, seriesType:'bo3', currentStep:0, slots:{}, roleAssign:{} };
+  document.getElementById('simBoardWrap').style.display='none';
+  document.getElementById('simScoreA').value=0; document.getElementById('simScoreB').value=0;
+  simUpdateSlotUI();
+});
+document.getElementById('simUndoBtn').addEventListener('click', ()=>{
+  if(simState.currentStep===0) return;
+  simState.currentStep--;
+  const step = DRAFT_SEQUENCE[simState.currentStep].step;
+  const hero = simState.slots[step];
+  if(hero){ delete simState.roleAssign[hero]; delete simState.slots[step]; }
+  document.getElementById('simResultCard').style.display='none';
+  simRenderBoard();
+});
+
+function simHeroImgTag(hero){
+  const url = heroImageURL.get(normKey(hero));
+  if(url) return `<img class="sc-img" src="${url}" loading="lazy">`;
+  const initials = hero.split(/[\s\-]/).map(w=>w[0]||'').join('').slice(0,2).toUpperCase();
+  return `<div class="sc-fallback">${initials}</div>`;
+}
+function simRenderCard(seqItem){
+  const step = seqItem.step;
+  const seqIdx = DRAFT_SEQUENCE.indexOf(seqItem);
+  const hero = simState.slots[step];
+  const isActive = seqIdx === simState.currentStep && !simDone();
+  const isBan = seqItem.type==='ban';
+  let cls = 'slot-card' + (isBan?' ban':'') + (hero?' filled':'') + (isActive?' active':'');
+  const clickAttr = (hero || isActive) ? `onclick="simCardClick(${step})"` : '';
+  let inner;
+  if(hero){
+    inner = `${simHeroImgTag(hero)}<div class="sc-name">${hero}</div>`;
+  } else if(isActive){
+    inner = `<div class="sc-empty">${isBan?'🚫':'⚔'}<span>KLIK</span></div>`;
+  } else {
+    inner = `<div class="sc-empty" style="opacity:.4;">${seqItem.type==='ban'?'BAN':'PICK'}</div>`;
+  }
+  return `<div class="${cls}" ${clickAttr}>${inner}</div>`;
+}
+function simRenderBoard(){
+  const render = (id, filter) => { document.getElementById(id).innerHTML = DRAFT_SEQUENCE.filter(filter).map(simRenderCard).join(''); };
+  render('simBanP1Blue',  s=>s.type==='ban'  && s.phase===1 && s.side==='B');
+  render('simBanP1Red',   s=>s.type==='ban'  && s.phase===1 && s.side==='R');
+  render('simPickP1Blue', s=>s.type==='pick' && s.phase===1 && s.side==='B');
+  render('simPickP1Red',  s=>s.type==='pick' && s.phase===1 && s.side==='R');
+  render('simBanP2Red',   s=>s.type==='ban'  && s.phase===2 && s.side==='R');
+  render('simBanP2Blue',  s=>s.type==='ban'  && s.phase===2 && s.side==='B');
+  render('simPickP2Red',  s=>s.type==='pick' && s.phase===2 && s.side==='R');
+  render('simPickP2Blue', s=>s.type==='pick' && s.phase===2 && s.side==='B');
+
+  const phaseBar = document.getElementById('simPhaseBar');
+  if(simDone()){
+    phaseBar.textContent = '✓ Draft selesai — pilih pemenang & simpan.';
+    phaseBar.style.color = 'var(--green)';
+    document.getElementById('simResultCard').style.display='block';
+    const ws = document.getElementById('simWinner');
+    ws.innerHTML = `<option value="">— pilih —</option><option value="${simState.teamA}">${simState.teamA} (Blue)</option><option value="${simState.teamB}">${simState.teamB} (Red)</option>`;
+    document.getElementById('simSuggestionBar').innerHTML='';
+  } else {
+    const cur = DRAFT_SEQUENCE[simState.currentStep];
+    const sideTeam = cur.side==='B' ? simState.teamA : simState.teamB;
+    const sideColor = cur.side==='B' ? 'var(--blue)' : 'var(--red)';
+    phaseBar.innerHTML = `Step ${cur.step}/20 — <span style="color:${sideColor};">${sideTeam}</span> ${cur.type==='ban'?'🚫 BAN':'⚔ PICK'}: <b>${cur.label}</b>`;
+    phaseBar.style.color = 'var(--gold)';
+    simRenderSuggestion(cur);
+  }
+}
+
+function simRenderSuggestion(cur){
+  const el = document.getElementById('simSuggestionBar');
+  const curTeam = cur.side==='B' ? simState.teamA : simState.teamB;
+  const oppTeam = cur.side==='B' ? simState.teamB : simState.teamA;
+  const oppSide = cur.side==='B' ? 'R' : 'B';
+  const used = new Set(Object.values(simState.slots).map(h=>normKey(h)));
+  let html = '';
+
+  const isBo1 = simState.seriesType==='bo1';
+  const neededToWin = simGetNeededToWin(simState.seriesType);
+  const curScore = cur.side==='B' ? simState.scoreA : simState.scoreB;
+  const oppScore = cur.side==='B' ? simState.scoreB : simState.scoreA;
+  const matchPoint = !isBo1 && (oppScore===neededToWin-1);
+  const survival = !isBo1 && (curScore===0 && oppScore===neededToWin-1);
+  if(isBo1) html += `<div style="color:var(--gold); font-weight:700; margin-bottom:8px;">⚡ Bo1 — satu game menentukan.</div>`;
+  else if(survival) html += `<div style="color:var(--red); font-weight:700; margin-bottom:8px;">⚠ MUST WIN — ${curTeam} harus menang.</div>`;
+  else if(matchPoint) html += `<div style="color:var(--gold); font-weight:700; margin-bottom:8px;">⚡ MATCH POINT — ${oppTeam} unggul ${oppScore}-${curScore}.</div>`;
+  else if(curScore>oppScore) html += `<div style="color:var(--green); margin-bottom:8px;">✓ ${curTeam} unggul ${curScore}-${oppScore}.</div>`;
+
+  if(!allRows.length){ el.innerHTML = html + '<span style="color:var(--mute);">Belum ada data historis.</span>'; return; }
+  const totalGames = allRows.length;
+  const { heroStats: ghs, heroPosStats } = computeGlobalHeroStats();
+
+  const renderSection = (label, color, roles, getComfort, getMeta, filledMap) => {
+    let t = `<div class="sg-head" style="color:${color};">${label}</div><table>`;
+    t += `<tr style="color:var(--mute); font-size:9.5px;"><td>Role</td><td>Power Pick</td><td>Meta Global</td></tr>`;
+    roles.forEach(role=>{
+      const rc = POSITION_ROLE_COLOR[role]||'#888';
+      const filled = filledMap ? filledMap[role] : null;
+      const roleLbl = filled
+        ? `<span class="role-tag" style="color:${rc}; opacity:.5;">${role}</span> <span style="font-size:9px; color:var(--mute);">✓${filled}</span>`
+        : `<span class="role-tag" style="color:${rc};">${role}</span>`;
+      const comfort = filled ? '' : (getComfort(role).join(' · ') || '<span style="color:var(--mute);">—</span>');
+      const meta = filled ? '' : (getMeta(role).join(' · ') || '<span style="color:var(--mute);">—</span>');
+      t += `<tr><td style="white-space:nowrap;">${roleLbl}</td><td>${comfort}</td><td>${meta}</td></tr>`;
+    });
+    t += `</table>`;
+    return t;
+  };
+
+  if(cur.type==='ban' && oppTeam){
+    const oppStats = computeTeamStats(oppTeam);
+    const oppPickedSlots = DRAFT_SEQUENCE.filter(s=>s.type==='pick'&&s.side===oppSide&&simState.slots[s.step]);
+    const oppRoleToHero = {};
+    oppPickedSlots.forEach(s=>{ const h=simState.slots[s.step], r=simState.roleAssign[h]; if(r) oppRoleToHero[r]=h; });
+    const getOppComfort = role => Object.entries(oppStats.positionalHeroByRole[role]||{})
+      .sort((a,b)=>(b[1].win+b[1].loss)-(a[1].win+a[1].loss)).filter(([h])=>!used.has(normKey(h))).slice(0,3)
+      .map(([h,hv])=>{ const tot=hv.win+hv.loss, wr=tot?Math.round(hv.win/tot*1000)/10:0; const wrc=wr>=60?'var(--green)':wr>=45?'var(--gold)':'var(--red)'; return `<b>${h}</b> <span style="color:${wrc};">${wr}%/${tot}g</span>`; });
+    const getMetaForRole = role => Object.entries(heroPosStats)
+      .map(([h,pos])=>{ const slotCount=pos[role]||0, ghv=ghs[h]; const presence=ghv?(ghv.picks+ghv.bans)/totalGames*100:0; const wr=ghv&&ghv.picks?Math.round(ghv.wins/ghv.picks*1000)/10:0; return {h,slotCount,presence,wr}; })
+      .filter(x=>x.slotCount>=3 && x.presence>=10 && !used.has(normKey(x.h)))
+      .sort((a,b)=>b.slotCount-a.slotCount||b.presence-a.presence).slice(0,3)
+      .map(x=>`<b>${x.h}</b> <span style="color:var(--mute);">${x.wr}%/${Math.round(x.presence)}%pr</span>`);
+    html += renderSection(`🚫 Sarankan Ban — ${curTeam}`, 'var(--gold)', SIM_ROLES, getOppComfort, getMetaForRole, oppRoleToHero);
+  }
+
+  if(cur.type==='pick' && curTeam){
+    const teamStats = computeTeamStats(curTeam);
+    const myFilledSlots = DRAFT_SEQUENCE.filter(s=>s.type==='pick'&&s.side===cur.side&&simState.slots[s.step]);
+    const roleToHero = {};
+    myFilledSlots.forEach(s=>{ const h=simState.slots[s.step]; const r=simState.roleAssign[h]; if(r) roleToHero[r]=h; });
+    const getComfort = role => Object.entries(teamStats.positionalHeroByRole[role]||{})
+      .sort((a,b)=>(b[1].win+b[1].loss)-(a[1].win+a[1].loss)).filter(([h])=>!used.has(normKey(h))).slice(0,3)
+      .map(([h,hv])=>{ const tot=hv.win+hv.loss, wr=tot?Math.round(hv.win/tot*1000)/10:0; const wrc=wr>=55?'var(--green)':wr>=40?'var(--gold)':'var(--red)'; return `<b>${h}</b> <span style="color:${wrc};">${wr}%/${tot}g</span>`; });
+    const getMeta = role => Object.entries(heroPosStats)
+      .map(([h,pos])=>{ const slotCount=pos[role]||0, ghv=ghs[h]; const presence=ghv?(ghv.picks+ghv.bans)/totalGames*100:0; const wr=ghv&&ghv.picks?Math.round(ghv.wins/ghv.picks*1000)/10:0; return {h,slotCount,presence,wr}; })
+      .filter(x=>x.slotCount>=3 && x.presence>=10 && !used.has(normKey(x.h)))
+      .sort((a,b)=>b.slotCount-a.slotCount||b.presence-a.presence).slice(0,3)
+      .map(x=>`<b>${x.h}</b> <span style="color:var(--mute);">${x.wr}%/${Math.round(x.presence)}%pr</span>`);
+    html += renderSection(`⚔ Sarankan Pick — ${curTeam}`, 'var(--green)', SIM_ROLES, getComfort, getMeta, roleToHero);
+  }
+  el.innerHTML = html || '<span style="color:var(--mute);">Belum cukup data historis.</span>';
+}
+
+// ── Hero picker for filling slots ──
+let simPickerStep = null;
+let simPickerReplace = false;
+function simCardClick(step){
+  const seqIdx = DRAFT_SEQUENCE.findIndex(s=>s.step===step);
+  if(simState.slots[step]){ simPickerReplace = true; simPickerStep = step; simOpenHeroPicker(step); return; }
+  if(seqIdx !== simState.currentStep) return;
+  simPickerReplace = false; simPickerStep = step; simOpenHeroPicker(step);
+}
+function simAllHeroNames(){
+  const s = new Set();
+  allRows.forEach(r=>{ splitHeroes(r.BluePicks).forEach(h=>s.add(h)); splitHeroes(r.RedPicks).forEach(h=>s.add(h)); splitHeroes(r.BlueBans).forEach(h=>s.add(h)); splitHeroes(r.RedBans).forEach(h=>s.add(h)); });
+  heroImageURL.forEach((url,key)=>{ /* nama asli tidak tersimpan terpisah di sini, cukup pakai yang sudah ada di CSV */ });
+  return [...s].sort();
+}
+function simOpenHeroPicker(step){
+  const seqItem = DRAFT_SEQUENCE.find(s=>s.step===step);
+  const sideTeam = seqItem.side==='B' ? simState.teamA : simState.teamB;
+  const sideColor = seqItem.side==='B' ? 'var(--blue)' : 'var(--red)';
+  document.getElementById('heroPickerTitle').innerHTML = `<span style="color:${sideColor};">${sideTeam}</span> — ${seqItem.label}`;
+  document.getElementById('heroPickerSearch').value = '';
+  simRenderHeroGrid('');
+  document.getElementById('heroPickerOverlay').classList.add('open');
+  document.getElementById('heroPickerModal').classList.add('open');
+}
+function closeHeroPicker(){
+  document.getElementById('heroPickerOverlay').classList.remove('open');
+  document.getElementById('heroPickerModal').classList.remove('open');
+  simPickerStep = null; simPickerReplace = false;
+}
+function simRenderHeroGrid(query){
+  let used;
+  if(simPickerReplace && simPickerStep!==null){
+    used = new Set(Object.entries(simState.slots).filter(([s])=>Number(s)!==simPickerStep).map(([,h])=>normKey(h)));
+  } else {
+    used = new Set(Object.values(simState.slots).map(h=>normKey(h)));
+  }
+  const all = simAllHeroNames();
+  const filtered = (query ? all.filter(h=>h.toLowerCase().includes(query.toLowerCase())) : all).filter(h=>!used.has(normKey(h)));
+  document.getElementById('heroPickerGrid').innerHTML = filtered.map(h=>{
+    const url = heroImageURL.get(normKey(h));
+    const img = url ? `<img src="${url}" loading="lazy">` : `<div class="hg-fallback">${h.split(/[\s\-]/).map(w=>w[0]||'').join('').slice(0,2).toUpperCase()}</div>`;
+    return `<div class="hero-grid-item" data-hero="${h.replace(/"/g,'&quot;')}">${img}<div class="hg-name">${h}</div></div>`;
+  }).join('');
+  document.getElementById('heroPickerGrid').querySelectorAll('.hero-grid-item').forEach(item=>{
+    item.addEventListener('click', ()=> simPickHero(item.dataset.hero));
+  });
+}
+document.getElementById('heroPickerSearch').addEventListener('input', function(){ simRenderHeroGrid(this.value); });
+document.getElementById('heroPickerClose').addEventListener('click', closeHeroPicker);
+document.getElementById('heroPickerOverlay').addEventListener('click', (e)=>{ if(e.target.id==='heroPickerOverlay') closeHeroPicker(); });
+
+function simPickHero(hero){
+  if(simPickerStep===null) return;
+  const step = simPickerStep;
+  const seqItem = DRAFT_SEQUENCE.find(s=>s.step===step);
+  if(simPickerReplace){
+    const oldHero = simState.slots[step];
+    if(oldHero) delete simState.roleAssign[oldHero];
+    simState.slots[step] = hero;
+    const archetype = HERO_ROLE[normKey(hero)];
+    if(archetype && seqItem.type==='pick'){
+      const taken = DRAFT_SEQUENCE.filter(s=>s.type==='pick'&&s.side===seqItem.side&&s.step!==step).map(s=>simState.roleAssign[simState.slots[s.step]]).filter(Boolean);
+      const mapped = ARCHETYPE_TO_SLOT[archetype];
+      if(mapped && !taken.includes(mapped)) simState.roleAssign[hero] = mapped;
+    }
+    closeHeroPicker(); simRenderBoard(); return;
+  }
+  simState.slots[step] = hero;
+  const archetype = HERO_ROLE[normKey(hero)];
+  if(archetype && seqItem.type==='pick'){
+    const taken = DRAFT_SEQUENCE.filter(s=>s.type==='pick'&&s.side===seqItem.side&&s.step!==step).map(s=>simState.roleAssign[simState.slots[s.step]]).filter(Boolean);
+    const mapped = ARCHETYPE_TO_SLOT[archetype];
+    if(mapped && !taken.includes(mapped)) simState.roleAssign[hero] = mapped;
+  }
+  simState.currentStep++;
+  closeHeroPicker();
+  simRenderBoard();
+}
+
+// ── Save draft + "next game" flow ──
+let lastSavedPayload = null;
+document.getElementById('simSaveBtn').addEventListener('click', async ()=>{
+  const statusEl = document.getElementById('simSaveStatus');
+  const winner = document.getElementById('simWinner').value;
+  if(!winner){ statusEl.innerHTML = '<span style="color:var(--gold);">Pilih pemenang dulu.</span>'; return; }
+  const duration = document.getElementById('simDuration').value||'';
+  const ROLES_ORD = ['EXP','Jungle','Mid','Gold','Support'];
+  const bPicks = DRAFT_SEQUENCE.filter(s=>s.type==='pick'&&s.side==='B').map(s=>simState.slots[s.step]).filter(Boolean);
+  const rPicks = DRAFT_SEQUENCE.filter(s=>s.type==='pick'&&s.side==='R').map(s=>simState.slots[s.step]).filter(Boolean);
+  const bBans  = DRAFT_SEQUENCE.filter(s=>s.type==='ban' &&s.side==='B').map(s=>simState.slots[s.step]).filter(Boolean);
+  const rBans  = DRAFT_SEQUENCE.filter(s=>s.type==='ban' &&s.side==='R').map(s=>simState.slots[s.step]).filter(Boolean);
+  const sortByRole = picks => {
+    const byRole={}; picks.forEach(h=>{ const r=simState.roleAssign[h]; if(r) byRole[r]=h; });
+    const sorted = ROLES_ORD.map(r=>byRole[r]).filter(Boolean);
+    picks.forEach(h=>{ if(!sorted.includes(h)) sorted.push(h); });
+    return sorted;
+  };
+  const gameNum = simState.scoreA + simState.scoreB + 1;
+  const payload = {
+    week:'', day:'', game:String(gameNum), date: new Date().toISOString().slice(0,10),
+    teamA: simState.teamA, teamB: simState.teamB,
+    bluePicks: sortByRole(bPicks), redPicks: sortByRole(rPicks),
+    blueBans: bBans, redBans: rBans,
+    winner, duration,
+    blueDraftOrder: bPicks, redDraftOrder: rPicks,
+  };
+  statusEl.textContent = 'Menyimpan...';
+  try{
+    const res = await fetch(proxyBase()+'/save-draft', {method:'POST', headers:authHeaders(), body:JSON.stringify(payload)});
+    const data = await res.json();
+    if(data.ok){
+      statusEl.innerHTML = `<span style="color:var(--green);">✓ Tersimpan (id ${data.id})</span>`;
+      lastSavedPayload = payload;
+      simShowNextGame(winner);
+    } else {
+      statusEl.innerHTML = `<span style="color:var(--red);">✗ ${data.error||'Gagal simpan'}</span>`;
+    }
+  }catch(e){ statusEl.innerHTML = `<span style="color:var(--red);">✗ ${e.message}</span>`; }
+});
+
+function simShowNextGame(winner){
+  const box = document.getElementById('simNextGameBox');
+  const textEl = document.getElementById('simNextGameText');
+  const btn = document.getElementById('simNextGameBtn');
+  if(simState.seriesType==='bo1'){ box.style.display='none'; return; }
+  const winnerIsA = winner===simState.teamA;
+  const newScoreA = simState.scoreA + (winnerIsA?1:0);
+  const newScoreB = simState.scoreB + (winnerIsA?0:1);
+  const neededToWin = simGetNeededToWin(simState.seriesType);
+  const seriesOver = newScoreA>=neededToWin || newScoreB>=neededToWin;
+  box.style.display = 'block';
+  if(seriesOver){
+    const seriesWinner = newScoreA>=neededToWin ? simState.teamA : simState.teamB;
+    textEl.innerHTML = `🏆 <b>${seriesWinner}</b> memenangkan seri ${newScoreA}-${newScoreB}!`;
+    btn.style.display = 'none';
+  } else {
+    textEl.textContent = `Skor sekarang ${newScoreA}-${newScoreB}. Lanjut ke Game ${newScoreA+newScoreB+1}?`;
+    btn.style.display = 'inline-flex';
+    btn.onclick = ()=>{
+      simState.scoreA = newScoreA; simState.scoreB = newScoreB;
+      simState.currentStep = 0; simState.slots = {}; simState.roleAssign = {};
+      document.getElementById('simResultCard').style.display='none';
+      box.style.display='none';
+      document.getElementById('simSaveStatus').textContent='';
+      const scoreEl = document.getElementById('simScoreDisplay');
+      scoreEl.innerHTML = `<span style="color:var(--blue);">${newScoreA}</span> <span style="color:var(--mute); font-size:14px;">—</span> <span style="color:var(--red);">${newScoreB}</span>`;
+      simRenderBoard();
+      document.getElementById('simBoardWrap').scrollIntoView({behavior:'smooth', block:'start'});
+    };
+  }
+}
+
+// ── Riwayat Draft (read-only) ──
+document.getElementById('loadDraftLogBtn').addEventListener('click', loadDraftLog);
+async function loadDraftLog(){
+  const el = document.getElementById('simDraftLog');
+  el.innerHTML = '<span style="color:var(--mute); font-size:12px;">Memuat...</span>';
+  try{
+    const res = await fetch(proxyBase()+'/read-drafts', {method:'POST', headers:{'Content-Type':'application/json'}, body:'{}'});
+    const data = await res.json();
+    const drafts = (data.drafts||[]).slice().reverse().slice(0,25);
+    if(!drafts.length){ el.innerHTML = '<span style="color:var(--mute); font-size:12px;">Belum ada draft tersimpan.</span>'; return; }
+    el.innerHTML = drafts.map(d=>{
+      const wc = d.winner===d.team_a ? 'var(--blue)' : d.winner===d.team_b ? 'var(--red)' : 'var(--mute)';
+      const chips = (arr, isBan) => (arr||[]).map(h=>`<span class="chip${isBan?' chip-ban':''}">${isBan?banIconHTML(h):heroIconHTML(h)} ${h}</span>`).join('');
+      return `<div class="draft-log-item" data-id="${d.id}">
+        <div class="draft-log-head">
+          <div>
+            <div class="draft-log-teams"><span class="vb">${d.team_a}</span> vs <span class="vr">${d.team_b}</span></div>
+            <div class="draft-log-sub">${d.date||''} ${d.game?('· Game '+d.game):''} ${d.time?('· '+d.time):''}</div>
+          </div>
+          <span style="color:${wc}; font-weight:700; font-size:12px;">${d.winner||'—'}</span>
+        </div>
+        <div class="draft-log-detail" id="dlog-detail-${d.id}">
+          <div class="tape-row"><span class="tape-lbl">Pick Blue</span>${chips(d.blue_picks,false)}</div>
+          <div class="tape-row"><span class="tape-lbl">Ban Blue</span>${chips(d.blue_bans,true)}</div>
+          <div class="tape-row"><span class="tape-lbl">Pick Red</span>${chips(d.red_picks,false)}</div>
+          <div class="tape-row"><span class="tape-lbl">Ban Red</span>${chips(d.red_bans,true)}</div>
+        </div>
+      </div>`;
+    }).join('');
+    el.querySelectorAll('.draft-log-item').forEach(item=>{
+      item.addEventListener('click', ()=>{
+        document.getElementById('dlog-detail-'+item.dataset.id).classList.toggle('open');
+      });
+    });
+  }catch(e){ el.innerHTML = `<span style="color:var(--red); font-size:12px;">Gagal memuat: ${e.message}</span>`; }
+}
+
+// ============================================================
+// SETTINGS
+// ============================================================
+document.getElementById('settingsBtn').addEventListener('click', ()=>{
+  document.getElementById('proxyUrlInput').value = proxyBase();
+  document.getElementById('apiTokenInput').value = apiToken();
+  document.getElementById('settingsOverlay').classList.add('open');
+  document.getElementById('settingsModal').classList.add('open');
+});
+function closeSettings(){
+  document.getElementById('settingsOverlay').classList.remove('open');
+  document.getElementById('settingsModal').classList.remove('open');
+}
+document.getElementById('settingsClose').addEventListener('click', closeSettings);
+document.getElementById('settingsOverlay').addEventListener('click', (e)=>{ if(e.target.id==='settingsOverlay') closeSettings(); });
+document.getElementById('settingsSaveBtn').addEventListener('click', ()=>{
+  localStorage.setItem('lq_proxy_url', document.getElementById('proxyUrlInput').value.trim());
+  localStorage.setItem('lq_api_token', document.getElementById('apiTokenInput').value.trim());
+  closeSettings();
+  showToast('Pengaturan disimpan. Memuat ulang data...', 'ok');
+  init();
+});
+
+// ============================================================
+// INIT
+// ============================================================
+async function init(){
+  simUpdateSlotUI();
+  await Promise.all([loadMasterData(), loadHeroImages()]);
+}
+init();
+</script>
+</body>
+</html>
