@@ -159,10 +159,31 @@ function serveMobilePage(res){
   }
 }
 
+// ── STATIC: aset PWA (manifest, service worker, ikon) — biar bisa di-"Add to Home Screen" ──
+const STATIC_ASSETS = {
+  '/manifest.json': { file: 'manifest.json', type: 'application/manifest+json' },
+  '/sw.js':          { file: 'sw.js',         type: 'application/javascript' },
+  '/icon-192.png':   { file: 'icon-192.png',  type: 'image/png' },
+  '/icon-512.png':   { file: 'icon-512.png',  type: 'image/png' },
+  '/apple-touch-icon.png': { file: 'apple-touch-icon.png', type: 'image/png' },
+};
+function serveStaticAsset(res, url){
+  const asset = STATIC_ASSETS[url];
+  try{
+    const data = fs.readFileSync(path.join(__dirname, asset.file));
+    res.writeHead(200, {'Content-Type': asset.type, 'Cache-Control':'public, max-age=86400'});
+    res.end(data);
+  }catch(e){
+    res.writeHead(404, {'Content-Type':'text/plain'});
+    res.end('Aset tidak ditemukan di server.');
+  }
+}
+
 // ── SERVER ─────────────────────────────────────────────────────
 const server = http.createServer((req, res)=>{
   if(req.method==='OPTIONS'){ res.writeHead(204,corsHeaders()); return res.end(); }
   if(req.method==='GET' && (req.url==='/' || req.url==='/mobile')){ return serveMobilePage(res); }
+  if(req.method==='GET' && STATIC_ASSETS[req.url]){ return serveStaticAsset(res, req.url); }
 
   let body='';
   req.on('data',chunk=>body+=chunk);

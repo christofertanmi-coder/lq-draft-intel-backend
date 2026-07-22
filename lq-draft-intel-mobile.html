@@ -5,6 +5,13 @@
 <title>LQ DRAFT INTEL — Mobile</title>
 <meta name="viewport" content="width=device-width, initial-scale=1.0, maximum-scale=1.0, viewport-fit=cover">
 <meta name="theme-color" content="#07070B">
+<link rel="manifest" href="/manifest.json">
+<link rel="apple-touch-icon" href="/apple-touch-icon.png">
+<link rel="icon" href="/icon-192.png">
+<meta name="apple-mobile-web-app-capable" content="yes">
+<meta name="mobile-web-app-capable" content="yes">
+<meta name="apple-mobile-web-app-status-bar-style" content="black-translucent">
+<meta name="apple-mobile-web-app-title" content="LQ Draft">
 <link rel="preconnect" href="https://fonts.googleapis.com">
 <link href="https://fonts.googleapis.com/css2?family=Rajdhani:wght@500;600;700&family=Inter:wght@400;500;600;700&family=JetBrains+Mono:wght@400;500;700&display=swap" rel="stylesheet">
 <style>
@@ -27,6 +34,20 @@
 }
 *{box-sizing:border-box; margin:0; padding:0; -webkit-tap-highlight-color:transparent;}
 html{background:var(--void);}
+
+.boot-overlay{
+  position:fixed; inset:0; z-index:200; background:var(--void);
+  display:flex; flex-direction:column; align-items:center; justify-content:center; gap:14px; padding:20px;
+  transition:opacity .3s ease; text-align:center;
+}
+.boot-overlay.hidden{ opacity:0; pointer-events:none; }
+.boot-spinner{
+  width:34px; height:34px; border-radius:50%; border:3px solid var(--panel-2); border-top-color:var(--gold);
+  animation:bootSpin 0.9s linear infinite;
+}
+@keyframes bootSpin{ to{ transform:rotate(360deg); } }
+.boot-text{ font-family:'Rajdhani',sans-serif; font-weight:700; font-size:15px; color:var(--ink); }
+.boot-sub{ font-size:11.5px; color:var(--mute); max-width:280px; line-height:1.6; }
 body{
   background:
     radial-gradient(1200px 500px at 50% -120px, rgba(227,181,100,.08), transparent 60%),
@@ -440,6 +461,12 @@ input.field[type=number]{ text-align:center; }
 </style>
 </head>
 <body>
+
+<div id="bootOverlay" class="boot-overlay">
+  <div class="boot-spinner"></div>
+  <div class="boot-text" id="bootText">Menghubungkan ke server…</div>
+  <div class="boot-sub" id="bootSub">Bisa sampai 1 menit kalau server baru bangun dari idle.</div>
+</div>
 
 <header class="topbar">
   <div class="brand"><span class="brand-dot"></span>LQ DRAFT INTEL</div>
@@ -1817,10 +1844,35 @@ document.getElementById('settingsSaveBtn').addEventListener('click', ()=>{
 // ============================================================
 // INIT
 // ============================================================
+// ── AUTO-REFRESH (Analisa Tim) — polling ringan, cuma jalan kalau tab kelihatan & mode Analisa Tim aktif.
+let teamPollInterval = null;
+function startTeamPolling(){
+  if(teamPollInterval) return;
+  teamPollInterval = setInterval(async ()=>{
+    if(document.hidden) return;
+    const activeMode = document.querySelector('.mode-btn.active')?.dataset.mode;
+    if(activeMode !== 'team') return;
+    const prevCount = allRows.length;
+    await loadMasterData();
+    if(allRows.length !== prevCount){
+      showToast(`Data diperbarui (${allRows.length} game).`, 'ok');
+      if(currentTeam) renderTeamAnalysis(currentTeam);
+    }
+  }, 45000); // 45 detik — cukup responsif tanpa boros baterai/kuota
+}
+
 async function init(){
   simUpdateSlotUI();
+  const bootText = document.getElementById('bootText');
+  const slowTimer = setTimeout(()=>{
+    bootText.textContent = 'Masih menunggu server…';
+  }, 6000);
   await Promise.all([loadMasterData(), loadHeroImages()]);
+  clearTimeout(slowTimer);
   simRestorePersisted();
+  document.getElementById('bootOverlay').classList.add('hidden');
+  startTeamPolling();
+  if('serviceWorker' in navigator){ navigator.serviceWorker.register('/sw.js').catch(()=>{}); }
 }
 init();
 </script>
