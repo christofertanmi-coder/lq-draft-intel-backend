@@ -1307,6 +1307,40 @@ const DRAFT_SEQUENCE = [
 
 let simState = { teamA:null, teamB:null, scoreA:0, scoreB:0, seriesType:'bo3', currentStep:0, slots:{}, roleAssign:{} };
 
+// ── PERSISTENSI DRAFT — supaya tidak hilang kalau ke-back/keluar tidak sengaja.
+// Disimpan di HP (localStorage), bukan ke server. Cuma dihapus saat Simpan Hasil berhasil
+// atau tombol Reset ditekan — SELAIN itu (back, tutup tab, reload) draft tetap ada.
+const SIM_DRAFT_KEY = 'lq_draft_inprogress';
+function simPersistState(){
+  if(!simState.teamA && !simState.teamB) { simClearPersisted(); return; }
+  try{ localStorage.setItem(SIM_DRAFT_KEY, JSON.stringify(simState)); }catch(e){}
+}
+function simClearPersisted(){
+  try{ localStorage.removeItem(SIM_DRAFT_KEY); }catch(e){}
+}
+function simRestorePersisted(){
+  let saved;
+  try{ saved = JSON.parse(localStorage.getItem(SIM_DRAFT_KEY)||'null'); }catch(e){ saved = null; }
+  if(!saved || !saved.teamA || !saved.teamB) return false;
+  simState = saved;
+  document.querySelector('.mode-btn[data-mode="sim"]').click();
+  document.getElementById('simSeriesType').value = simState.seriesType;
+  document.getElementById('simScoreRow').style.display = simState.seriesType==='bo1' ? 'none' : 'flex';
+  document.getElementById('simScoreA').value = simState.scoreA;
+  document.getElementById('simScoreB').value = simState.scoreB;
+  document.getElementById('simHeadA').textContent = simState.teamA;
+  document.getElementById('simHeadB').textContent = simState.teamB;
+  const scoreEl = document.getElementById('simScoreDisplay');
+  scoreEl.innerHTML = simState.seriesType==='bo1'
+    ? `<span style="color:var(--gold);">BO1</span>`
+    : `<span style="color:var(--blue);">${simState.scoreA}</span> <span style="color:var(--mute); font-size:14px;">—</span> <span style="color:var(--red);">${simState.scoreB}</span>`;
+  document.getElementById('simBoardWrap').style.display='block';
+  simUpdateSlotUI();
+  simRenderBoard();
+  showToast('Draft yang belum selesai berhasil dipulihkan.', 'ok');
+  return true;
+}
+
 function simGetNeededToWin(t){ return {bo1:1,bo3:2,bo5:3,bo7:4}[t] || 2; }
 function simDone(){ return simState.currentStep >= 20; }
 
@@ -1355,6 +1389,7 @@ document.getElementById('simResetBtn').addEventListener('click', ()=>{
   document.getElementById('simBoardWrap').style.display='none';
   document.getElementById('simScoreA').value=0; document.getElementById('simScoreB').value=0;
   simUpdateSlotUI();
+  simClearPersisted();
 });
 document.getElementById('simUndoBtn').addEventListener('click', ()=>{
   if(simState.currentStep===0) return;
@@ -1449,6 +1484,7 @@ function simRenderBoard(){
     simRenderSuggestion(cur);
   }
   simRenderCounterIntel();
+  simPersistState();
 }
 
 function simRenderSuggestion(cur){
@@ -1678,6 +1714,7 @@ document.getElementById('simSaveBtn').addEventListener('click', async ()=>{
     if(data.ok){
       statusEl.innerHTML = `<span style="color:var(--green);">✓ Tersimpan (id ${data.id})</span>`;
       lastSavedPayload = payload;
+      simClearPersisted();
       simShowNextGame(winner);
     } else {
       statusEl.innerHTML = `<span style="color:var(--red);">✗ ${data.error||'Gagal simpan'}</span>`;
@@ -1783,6 +1820,7 @@ document.getElementById('settingsSaveBtn').addEventListener('click', ()=>{
 async function init(){
   simUpdateSlotUI();
   await Promise.all([loadMasterData(), loadHeroImages()]);
+  simRestorePersisted();
 }
 init();
 </script>
