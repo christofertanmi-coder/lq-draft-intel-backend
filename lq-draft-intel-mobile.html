@@ -387,11 +387,26 @@ input.field[type=number]{ text-align:center; }
 .counter-panel .ci-item{ font-size:11px; }
 .counter-panel .ci-item b{ color:var(--ink); }
 .counter-panel .sg-sub{ font-size:10px; color:var(--mute); margin:-4px 0 10px; }
+
+/* Saran Pick/Ban — nempel di dalam kotak tim yang aktif, kartu per-role bisa digeser */
+.sg-slot{ margin-top:14px; padding-top:12px; border-top:1px dashed var(--border); }
+.sg-slot .sg-head{ font-weight:700; color:var(--gold); font-size:11.5px; margin-bottom:2px; }
+.sg-slot .sg-sub{ font-size:9.5px; color:var(--mute); margin-bottom:8px; }
+.sg-slider{ display:flex; gap:8px; overflow-x:auto; scroll-snap-type:x mandatory; padding-bottom:4px; }
+.sg-card{
+  flex:0 0 76%; scroll-snap-align:start; background:var(--panel-2); border:1px solid var(--border); border-radius:10px; padding:10px;
+}
+.sg-card-role{ font-family:'Rajdhani',sans-serif; font-weight:700; font-size:13px; margin-bottom:6px; }
+.sg-card-lbl{ font-size:9px; color:var(--mute); text-transform:uppercase; letter-spacing:.05em; margin-top:6px; }
+.sg-card-val{ font-size:11px; margin-top:2px; line-height:1.6; }
+.sg-card-filled{ font-size:11px; color:var(--mute); }
+.sg-context{ font-size:11px; margin-bottom:8px; }
 .ci-slider{ display:flex; gap:10px; overflow-x:auto; scroll-snap-type:x mandatory; padding-bottom:6px; margin:0 -14px; padding-left:14px; padding-right:14px; }
 .ci-card{
   flex:0 0 82%; scroll-snap-align:start; background:var(--panel-2); border:1px solid var(--border); border-radius:10px; padding:12px;
 }
-.ci-card-title{ font-size:10.5px; font-weight:700; color:var(--blue); text-transform:uppercase; letter-spacing:.04em; margin-bottom:8px; }
+.ci-card-title{ font-size:10.5px; font-weight:700; color:var(--blue); text-transform:uppercase; letter-spacing:.04em; margin-bottom:4px; }
+.ci-card-desc{ font-size:10px; color:var(--mute); line-height:1.5; margin-bottom:8px; }
 .ci-card-list{ display:flex; flex-direction:column; gap:6px; }
 .ci-card-row{ display:flex; justify-content:space-between; align-items:center; font-size:11.5px; gap:8px; }
 .ci-card-row .ci-name{ color:var(--ink); font-weight:600; }
@@ -559,14 +574,14 @@ input.field[type=number]{ text-align:center; }
         <div class="team-block-name blue" id="simTeamBlockNameBlue">Blue</div>
         <div class="phase-block-title">Ban</div><div class="side-cards-row" id="simBanBlue"></div>
         <div class="phase-block-title">Pick</div><div class="side-cards-row" id="simPickBlue"></div>
+        <div id="simSuggestSlotBlue"></div>
       </div>
       <div class="team-block red" id="simTeamBlockRed">
         <div class="team-block-name red" id="simTeamBlockNameRed">Red</div>
         <div class="phase-block-title">Ban</div><div class="side-cards-row" id="simBanRed"></div>
         <div class="phase-block-title">Pick</div><div class="side-cards-row" id="simPickRed"></div>
+        <div id="simSuggestSlotRed"></div>
       </div>
-
-      <div class="suggestion-panel" id="simSuggestionBar"></div>
 
       <div class="suggestion-panel counter-panel" id="simCounterIntelBar" style="display:none;"></div>
 
@@ -937,12 +952,16 @@ function simRenderCounterIntel(){
   const used = new Set(Object.values(simState.slots).map(h=>normKey(h)));
   const allHeroes = simAllHeroNames();
 
-  const cur = simDone() ? null : DRAFT_SEQUENCE[simState.currentStep];
-  const mySide = cur ? cur.side : null;
-  const oppSide = cur ? (cur.side==='B'?'R':'B') : null;
+  // Referensi sisi: kalau draft sudah selesai, tetap pakai sisi aksi TERAKHIR (bukan null)
+  // supaya kartu tidak hilang/berubah makna pas draft baru saja kelar.
+  const refItem = simDone() ? DRAFT_SEQUENCE[19] : DRAFT_SEQUENCE[simState.currentStep];
+  const mySide = refItem.side;
+  const oppSide = mySide==='B' ? 'R' : 'B';
+  const myTeamName  = mySide==='B' ? (simState.teamA||'Blue') : (simState.teamB||'Red');
+  const oppTeamName = mySide==='B' ? (simState.teamB||'Red')  : (simState.teamA||'Blue');
 
-  const oppPicks = filledSlots.filter(s=>s.type==='pick' && s.side===(oppSide||'R')).map(s=>simState.slots[s.step]);
-  const myPicks  = filledSlots.filter(s=>s.type==='pick' && s.side===(mySide||'B')).map(s=>simState.slots[s.step]);
+  const oppPicks = filledSlots.filter(s=>s.type==='pick' && s.side===oppSide).map(s=>simState.slots[s.step]);
+  const myPicks  = filledSlots.filter(s=>s.type==='pick' && s.side===mySide).map(s=>simState.slots[s.step]);
   const allBans  = filledSlots.filter(s=>s.type==='ban').map(s=>simState.slots[s.step]);
 
   // KARTU 1 — Ancaman Teratas: dari SEMUA pick lawan sejauh ini, hero (belum dipakai) mana yang
@@ -997,11 +1016,20 @@ function simRenderCounterIntel(){
   })();
 
   const cards = [];
-  if(threatCard) cards.push({title:'⚠ Ancaman Teratas Lawan Pick Mereka', rows: threatCard.map(x=>
+  if(threatCard) cards.push({
+    title:`⚠ Ancaman Buat Pick ${oppTeamName}`,
+    desc:`Hero belum dipakai yang historisnya paling sering MENANG lawan hero yang sudah dipick ${oppTeamName}. Kandidat kuat buat di-ban/direbut.`,
+    rows: threatCard.map(x=>
     `<div class="ci-card-row"><span class="ci-name">${x.h}</span><span style="color:var(--red);">${x.avgWr}% avg WR · ${x.coverage} pick tercover</span></div>`)});
-  if(followCard) cards.push({title:'📈 Kombinasi Lanjutan Tim Ini', rows: followCard.map(x=>
+  if(followCard) cards.push({
+    title:`📈 Lanjutan Setelah Pick ${myTeamName}`,
+    desc:`Hero yang secara historis sering nyusul dipick ${myTeamName} setelah kombinasi pick mereka sejauh ini.`,
+    rows: followCard.map(x=>
     `<div class="ci-card-row"><span class="ci-name">${x.h}</span><span style="color:var(--mute);">${x.wr}%/${x.tot}g</span></div>`)});
-  if(banCard) cards.push({title:'🚫 Pola Setelah Ban Sejauh Ini', rows: banCard.map(x=>
+  if(banCard) cards.push({
+    title:`🚫 Kemungkinan Muncul Setelah Ban`,
+    desc:`Dari semua hero yang sudah diban kedua tim game ini, hero yang secara historis sering muncul dipick setelahnya.`,
+    rows: banCard.map(x=>
     `<div class="ci-card-row"><span class="ci-name">${x.h}</span><span style="color:var(--mute);">${x.wr}%/${x.tot}g</span></div>`)});
 
   if(!cards.length){ el.style.display='none'; return; }
@@ -1012,6 +1040,7 @@ function simRenderCounterIntel(){
     <div class="ci-slider">${cards.map(c=>`
       <div class="ci-card">
         <div class="ci-card-title">${c.title}</div>
+        <div class="ci-card-desc">${c.desc}</div>
         <div class="ci-card-list">${c.rows.join('') || '<span class="ci-card-empty">Belum ada sample cukup.</span>'}</div>
       </div>`).join('')}</div>
     ${cards.length>1?`<div class="ci-dots">${cards.map(()=>'<span></span>').join('')}</div>`:''}
@@ -1407,7 +1436,8 @@ function simRenderBoard(){
     document.getElementById('simResultCard').style.display='block';
     const ws = document.getElementById('simWinner');
     ws.innerHTML = `<option value="">— pilih —</option><option value="${simState.teamA}">${simState.teamA} (Blue)</option><option value="${simState.teamB}">${simState.teamB} (Red)</option>`;
-    document.getElementById('simSuggestionBar').innerHTML='';
+    document.getElementById('simSuggestSlotBlue').innerHTML='';
+    document.getElementById('simSuggestSlotRed').innerHTML='';
   } else {
     const cur = DRAFT_SEQUENCE[simState.currentStep];
     const sideTeam = cur.side==='B' ? simState.teamA : simState.teamB;
@@ -1422,12 +1452,17 @@ function simRenderBoard(){
 }
 
 function simRenderSuggestion(cur){
-  const el = document.getElementById('simSuggestionBar');
+  const slotBlue = document.getElementById('simSuggestSlotBlue');
+  const slotRed = document.getElementById('simSuggestSlotRed');
+  const mySlot = cur.side==='B' ? slotBlue : slotRed;
+  const otherSlot = cur.side==='B' ? slotRed : slotBlue;
+  otherSlot.innerHTML = ''; // giliran sudah pindah — kosongkan slot sisi yang tidak aktif
+
   const curTeam = cur.side==='B' ? simState.teamA : simState.teamB;
   const oppTeam = cur.side==='B' ? simState.teamB : simState.teamA;
   const oppSide = cur.side==='B' ? 'R' : 'B';
   const used = new Set(Object.values(simState.slots).map(h=>normKey(h)));
-  let html = '';
+  let context = '';
 
   const isBo1 = simState.seriesType==='bo1';
   const neededToWin = simGetNeededToWin(simState.seriesType);
@@ -1435,32 +1470,30 @@ function simRenderSuggestion(cur){
   const oppScore = cur.side==='B' ? simState.scoreB : simState.scoreA;
   const matchPoint = !isBo1 && (oppScore===neededToWin-1);
   const survival = !isBo1 && (curScore===0 && oppScore===neededToWin-1);
-  if(isBo1) html += `<div style="color:var(--gold); font-weight:700; margin-bottom:8px;">⚡ Bo1 — satu game menentukan.</div>`;
-  else if(survival) html += `<div style="color:var(--red); font-weight:700; margin-bottom:8px;">⚠ MUST WIN — ${curTeam} harus menang.</div>`;
-  else if(matchPoint) html += `<div style="color:var(--gold); font-weight:700; margin-bottom:8px;">⚡ MATCH POINT — ${oppTeam} unggul ${oppScore}-${curScore}.</div>`;
-  else if(curScore>oppScore) html += `<div style="color:var(--green); margin-bottom:8px;">✓ ${curTeam} unggul ${curScore}-${oppScore}.</div>`;
+  if(isBo1) context = `<div class="sg-context" style="color:var(--gold);">⚡ Bo1 — satu game menentukan.</div>`;
+  else if(survival) context = `<div class="sg-context" style="color:var(--red);">⚠ MUST WIN — ${curTeam} harus menang.</div>`;
+  else if(matchPoint) context = `<div class="sg-context" style="color:var(--gold);">⚡ MATCH POINT — ${oppTeam} unggul ${oppScore}-${curScore}.</div>`;
+  else if(curScore>oppScore) context = `<div class="sg-context" style="color:var(--green);">✓ ${curTeam} unggul ${curScore}-${oppScore}.</div>`;
 
-  if(!allRows.length){ el.innerHTML = html + '<span style="color:var(--mute);">Belum ada data historis.</span>'; return; }
+  if(!allRows.length){ mySlot.innerHTML = `<div class="sg-slot"><span style="color:var(--mute);">Belum ada data historis.</span></div>`; return; }
   const totalGames = allRows.length;
   const { heroStats: ghs, heroPosStats } = computeGlobalHeroStats();
 
-  const renderSection = (label, color, roles, getComfort, getMeta, filledMap) => {
-    let t = `<div class="sg-head" style="color:${color};">${label}</div><table>`;
-    t += `<tr style="color:var(--mute); font-size:9.5px;"><td>Role</td><td>Power Pick</td><td>Meta Global</td></tr>`;
-    roles.forEach(role=>{
-      const rc = POSITION_ROLE_COLOR[role]||'#888';
-      const filled = filledMap ? filledMap[role] : null;
-      const roleLbl = filled
-        ? `<span class="role-tag" style="color:${rc}; opacity:.5;">${role}</span> <span style="font-size:9px; color:var(--mute);">✓${filled}</span>`
-        : `<span class="role-tag" style="color:${rc};">${role}</span>`;
-      const comfort = filled ? '' : (getComfort(role).join(' · ') || '<span style="color:var(--mute);">—</span>');
-      const meta = filled ? '' : (getMeta(role).join(' · ') || '<span style="color:var(--mute);">—</span>');
-      t += `<tr><td style="white-space:nowrap;">${roleLbl}</td><td>${comfort}</td><td>${meta}</td></tr>`;
-    });
-    t += `</table>`;
-    return t;
-  };
+  // Tiap role jadi 1 kartu yang bisa digeser, bukan tabel panjang ke bawah.
+  const renderCards = (roles, getComfort, getMeta, filledMap) => roles.map(role=>{
+    const rc = POSITION_ROLE_COLOR[role]||'#888';
+    const filled = filledMap ? filledMap[role] : null;
+    if(filled){
+      return `<div class="sg-card"><div class="sg-card-role" style="color:${rc}; opacity:.5;">${role}</div><div class="sg-card-filled">✓ sudah dipick: <b style="color:var(--ink);">${filled}</b></div></div>`;
+    }
+    const comfort = getComfort(role).join(' · ') || '<span style="color:var(--mute);">—</span>';
+    const meta = getMeta(role).join(' · ') || '<span style="color:var(--mute);">—</span>';
+    return `<div class="sg-card"><div class="sg-card-role" style="color:${rc};">${role}</div>
+      <div class="sg-card-lbl">Power Pick</div><div class="sg-card-val">${comfort}</div>
+      <div class="sg-card-lbl">Meta Global</div><div class="sg-card-val">${meta}</div></div>`;
+  }).join('');
 
+  let head = '', cards = '';
   if(cur.type==='ban' && oppTeam){
     const oppStats = computeTeamStats(oppTeam);
     const oppPickedSlots = DRAFT_SEQUENCE.filter(s=>s.type==='pick'&&s.side===oppSide&&simState.slots[s.step]);
@@ -1474,7 +1507,8 @@ function simRenderSuggestion(cur){
       .filter(x=>x.slotCount>=3 && x.presence>=10 && !used.has(normKey(x.h)))
       .sort((a,b)=>b.slotCount-a.slotCount||b.presence-a.presence).slice(0,3)
       .map(x=>`<b>${x.h}</b> <span style="color:var(--mute);">${x.wr}%/${Math.round(x.presence)}%pr</span>`);
-    html += renderSection(`🚫 Sarankan Ban — ${curTeam}`, 'var(--gold)', SIM_ROLES, getOppComfort, getMetaForRole, oppRoleToHero);
+    head = `🚫 Sarankan Ban — ${curTeam} <span class="sg-sub" style="display:inline;">(role kosong lawan ${oppTeam})</span>`;
+    cards = renderCards(SIM_ROLES, getOppComfort, getMetaForRole, oppRoleToHero);
   }
 
   if(cur.type==='pick' && curTeam){
@@ -1490,9 +1524,11 @@ function simRenderSuggestion(cur){
       .filter(x=>x.slotCount>=3 && x.presence>=10 && !used.has(normKey(x.h)))
       .sort((a,b)=>b.slotCount-a.slotCount||b.presence-a.presence).slice(0,3)
       .map(x=>`<b>${x.h}</b> <span style="color:var(--mute);">${x.wr}%/${Math.round(x.presence)}%pr</span>`);
-    html += renderSection(`⚔ Sarankan Pick — ${curTeam}`, 'var(--green)', SIM_ROLES, getComfort, getMeta, roleToHero);
+    head = `⚔ Sarankan Pick — ${curTeam} <span class="sg-sub" style="display:inline;">(role kosong tim ini)</span>`;
+    cards = renderCards(SIM_ROLES, getComfort, getMeta, roleToHero);
   }
-  el.innerHTML = html || '<span style="color:var(--mute);">Belum cukup data historis.</span>';
+
+  mySlot.innerHTML = `<div class="sg-slot">${context}<div class="sg-head">${head}</div><div class="sg-sub">Geser ke samping untuk lihat role lain.</div><div class="sg-slider">${cards}</div></div>`;
 }
 
 // ── Hero picker for filling slots ──
