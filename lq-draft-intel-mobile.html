@@ -318,15 +318,18 @@ main{ padding:0 14px; max-width:640px; margin:0 auto; }
 
 /* ===== DRAFT SIMULATOR ===== */
 .sim-setup-card{ background:var(--panel); border:1px solid var(--border); border-radius:14px; padding:16px; margin-top:16px; }
-.sim-team-pick-row{ display:flex; gap:10px; margin-bottom:12px; }
+.sim-team-pick-row{ position:relative; display:flex; gap:10px; margin-bottom:12px; }
 .sim-team-slot{
-  flex:1; border:1px solid var(--border); border-radius:10px; padding:12px; text-align:center; cursor:pointer;
+  flex:1; min-width:0; border:1px solid var(--border); border-radius:10px; padding:12px; text-align:center; cursor:pointer;
   background:var(--panel-2);
 }
 .sim-team-slot.blue{ border-color:rgba(78,147,233,.4); }
 .sim-team-slot.red{ border-color:rgba(225,84,75,.4); }
 .sim-team-slot .lbl{ font-size:9.5px; color:var(--mute); text-transform:uppercase; letter-spacing:.05em; margin-bottom:4px; }
-.sim-team-slot .tname{ font-family:'Rajdhani',sans-serif; font-weight:700; font-size:13.5px; }
+.sim-team-slot .tname{
+  font-family:'Rajdhani',sans-serif; font-weight:700; font-size:13.5px;
+  white-space:nowrap; overflow:hidden; text-overflow:ellipsis;
+}
 .sim-team-slot .tname.empty{ color:var(--mute); }
 .field-row{ display:flex; gap:10px; align-items:center; margin-bottom:10px; }
 .field-row label{ font-size:11px; color:var(--mute); min-width:70px; }
@@ -342,10 +345,16 @@ input.field[type=number]{ text-align:center; }
 .sim-board-header .tname{ font-family:'Rajdhani',sans-serif; font-weight:700; font-size:15px; }
 .sim-board-header .tname.blue{ color:var(--blue); } .sim-board-header .tname.red{ color:var(--red); }
 .swap-btn{
-  width:30px; height:30px; border-radius:50%; border:1px solid var(--border); background:var(--panel-2);
-  color:var(--gold); font-size:14px; cursor:pointer; flex:none; display:flex; align-items:center; justify-content:center;
+  width:30px; height:30px; border-radius:50%; border:1px solid var(--border); background:var(--panel);
+  color:var(--gold); font-size:14px; cursor:pointer; display:flex; align-items:center; justify-content:center;
+  box-shadow:0 2px 8px rgba(0,0,0,.4);
 }
-.swap-btn:active{ background:var(--panel); transform:scale(.92); }
+.swap-btn:active{ background:var(--panel-2); transform:translate(-50%,-50%) scale(.92); }
+/* Melayang di atas — TIDAK ikut ambil jatah lebar flex, jadi kedua kotak tim tetap dapat lebar
+   penuh & sama rata walau nama tim sama-sama panjang. */
+.sim-team-pick-row .swap-btn{
+  position:absolute; left:50%; top:50%; transform:translate(-50%,-50%); z-index:2;
+}
 .sim-score{ font-family:'JetBrains Mono',monospace; font-size:20px; font-weight:700; }
 .phase-bar{
   text-align:center; font-size:12px; padding:10px; border-radius:9px; background:var(--panel-2);
@@ -600,7 +609,6 @@ input.field[type=number]{ text-align:center; }
         <span class="tname blue" id="simHeadA"></span>
         <span class="sim-score" id="simScoreDisplay"></span>
         <span class="tname red" id="simHeadB"></span>
-        <button class="swap-btn" id="simSwapBtnBoard" title="Tukar sisi (skor ikut tertukar)">⇄</button>
       </div>
       <div class="phase-bar" id="simPhaseBar"></div>
 
@@ -1405,7 +1413,6 @@ function simSwapSides(){
   showToast('Sisi Blue/Red ditukar.', 'ok');
 }
 document.getElementById('simSwapBtnSetup').addEventListener('click', simSwapSides);
-document.getElementById('simSwapBtnBoard').addEventListener('click', simSwapSides);
 
 document.getElementById('simSlotA').addEventListener('click', ()=>{
   openTeamPicker('Pilih Tim Blue', simState.teamB, (t)=>{ simState.teamA=t; simUpdateSlotUI(); });
