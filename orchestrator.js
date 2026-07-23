@@ -1,9 +1,13 @@
 // orchestrator.js — LQ DRAFT INTEL
 // Jalan terus di PC selama sesi draft. Tugas:
-//  1. Pantau folder CSV scrape lokal -> auto jalankan pipeline.py saat berubah.
-//  2. Polling Supabase (tabel `drafts`) tiap POLL_INTERVAL_MS -> kalau ada draft baru,
-//     download jadi draft_simulator.csv lokal -> jalankan pipeline.py.
-//  3. Setelah pipeline.py selesai (dari sumber manapun) -> upload master.csv ke Supabase.
+//  1. Pantau folder CSV scrape lokal -> trigger sinkronisasi penuh saat ada file berubah.
+//  2. Polling Supabase (tabel `drafts`) tiap POLL_INTERVAL_MS -> trigger sinkronisasi penuh
+//     kalau ada draft baru.
+//  Kedua trigger di atas menjalankan runFullSync() yang SAMA: download_drafts.py (tarik draft
+//  terbaru dari Supabase) -> pipeline.py (gabung ke master.csv) -> upload_master.py (kirim
+//  balik ke Supabase). Disatukan supaya tidak ada celah — sebelumnya file-watcher pakai jalur
+//  terpisah yang skip langkah tarik draft, jadi draft baru bisa ketinggalan kalau yang trigger
+//  duluan adalah perubahan file CSV scrape, bukan polling draft baru.
 //
 // Cara pakai: node orchestrator.js
 
@@ -59,27 +63,10 @@ function runCmd(cmd){
   });
 }
 
-async function runPipelineAndUpload(reason){
-  if(running){
-    console.log(`[Orchestrator] Skip (${reason}) - masih ada proses berjalan.`);
-    return;
-  }
-  running = true;
-  console.log(`[Orchestrator] Trigger: ${reason}`);
-  try{
-    backupMasterCsv();
-    await runCmd(`${PYTHON_CMD} "${path.join(__dirname,'pipeline.py')}"`);
-    console.log('[Orchestrator] pipeline.py selesai.');
-    await runCmd(`${PYTHON_CMD} "${path.join(__dirname,'upload_master.py')}"`);
-    console.log('[Orchestrator] upload_master.py selesai. master.csv sinkron ke Supabase.');
-  }catch(e){
-    console.error('[Orchestrator] ERROR:', e.message);
-  }finally{
-    running = false;
-  }
-}
-
-async function downloadDraftsAndRun(reason){
+// Satu jalur sinkronisasi penuh dipakai oleh KEDUA trigger (file watcher maupun polling
+// draft baru) — supaya tidak ada celah lagi seperti sebelumnya (file-watcher sempat skip
+// langkah tarik draft terbaru dari Supabase karena pakai jalur terpisah).
+async function runFullSync(reason){
   if(running){
     console.log(`[Orchestrator] Skip (${reason}) - masih ada proses berjalan.`);
     return;
@@ -114,7 +101,7 @@ function startFileWatcher(folder){
     if(filename.toLowerCase() === 'master.csv') return; // output, bukan input
     clearTimeout(debounceTimer);
     debounceTimer = setTimeout(()=>{
-      runPipelineAndUpload(`file berubah: ${filename}`);
+      runFullSync(`file berubah: ${filename}`);
     }, 3000); // debounce 3s biar tidak trigger berkali-kali saat file masih ditulis
   });
   console.log(`[Orchestrator] Watcher CSV aktif di: ${folder}`);
@@ -136,7 +123,7 @@ async function pollDrafts(){
       const isFirstRun = lastKnownMaxId === 0;
       lastKnownMaxId = currentMaxId;
       if(!isFirstRun){
-        await downloadDraftsAndRun(`draft baru terdeteksi (id ${currentMaxId})`);
+        await runFullSync(`draft baru terdeteksi (id ${currentMaxId})`);
       }
     }
   }catch(e){
