@@ -341,6 +341,11 @@ input.field[type=number]{ text-align:center; }
 }
 .sim-board-header .tname{ font-family:'Rajdhani',sans-serif; font-weight:700; font-size:15px; }
 .sim-board-header .tname.blue{ color:var(--blue); } .sim-board-header .tname.red{ color:var(--red); }
+.swap-btn{
+  width:30px; height:30px; border-radius:50%; border:1px solid var(--border); background:var(--panel-2);
+  color:var(--gold); font-size:14px; cursor:pointer; flex:none; display:flex; align-items:center; justify-content:center;
+}
+.swap-btn:active{ background:var(--panel); transform:scale(.92); }
 .sim-score{ font-family:'JetBrains Mono',monospace; font-size:20px; font-weight:700; }
 .phase-bar{
   text-align:center; font-size:12px; padding:10px; border-radius:9px; background:var(--panel-2);
@@ -566,6 +571,7 @@ input.field[type=number]{ text-align:center; }
           <div class="lbl">Blue</div>
           <div class="tname empty" id="simNameA">Pilih Tim A</div>
         </div>
+        <button class="swap-btn" id="simSwapBtnSetup" title="Tukar sisi">⇄</button>
         <div class="sim-team-slot red" id="simSlotB">
           <div class="lbl">Red</div>
           <div class="tname empty" id="simNameB">Pilih Tim B</div>
@@ -594,6 +600,7 @@ input.field[type=number]{ text-align:center; }
         <span class="tname blue" id="simHeadA"></span>
         <span class="sim-score" id="simScoreDisplay"></span>
         <span class="tname red" id="simHeadB"></span>
+        <button class="swap-btn" id="simSwapBtnBoard" title="Tukar sisi (skor ikut tertukar)">⇄</button>
       </div>
       <div class="phase-bar" id="simPhaseBar"></div>
 
@@ -1377,6 +1384,29 @@ function simUpdateSlotUI(){
   document.getElementById('simNameB').textContent = simState.teamB || 'Pilih Tim B';
   document.getElementById('simNameB').classList.toggle('empty', !simState.teamB);
 }
+
+// Tukar Blue<->Red — heroes yang sudah dipick/ban tetap nempel di SISI papannya (Blue/Red),
+// jadi tukar cuma soal nama tim + skor, tidak mengacak draft yang sudah jalan.
+function simSwapSides(){
+  [simState.teamA, simState.teamB] = [simState.teamB, simState.teamA];
+  [simState.scoreA, simState.scoreB] = [simState.scoreB, simState.scoreA];
+  simUpdateSlotUI();
+  document.getElementById('simScoreA').value = simState.scoreA;
+  document.getElementById('simScoreB').value = simState.scoreB;
+  if(document.getElementById('simBoardWrap').style.display !== 'none'){
+    document.getElementById('simHeadA').textContent = simState.teamA || '';
+    document.getElementById('simHeadB').textContent = simState.teamB || '';
+    const scoreEl = document.getElementById('simScoreDisplay');
+    scoreEl.innerHTML = simState.seriesType==='bo1'
+      ? `<span style="color:var(--gold);">BO1</span>`
+      : `<span style="color:var(--blue);">${simState.scoreA}</span> <span style="color:var(--mute); font-size:14px;">—</span> <span style="color:var(--red);">${simState.scoreB}</span>`;
+    simRenderBoard();
+  }
+  showToast('Sisi Blue/Red ditukar.', 'ok');
+}
+document.getElementById('simSwapBtnSetup').addEventListener('click', simSwapSides);
+document.getElementById('simSwapBtnBoard').addEventListener('click', simSwapSides);
+
 document.getElementById('simSlotA').addEventListener('click', ()=>{
   openTeamPicker('Pilih Tim Blue', simState.teamB, (t)=>{ simState.teamA=t; simUpdateSlotUI(); });
 });
